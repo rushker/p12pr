@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateQRCode } from '../../services/qrService';
 import QRCode from 'react-qr-code';
-
+import '../../styles/variables.css'; 
+import '../../styles/QRGenerator.css';
+import React from 'react';
+import '../../styles/QRPage.css';
 const QRPage = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');

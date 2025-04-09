@@ -1,0 +1,18 @@
+/* styles/QRGenerator.css */
+.qr-container {
+  perspective: 1000px;
+  background: rgba(var(--color-primary), 0.05);
+}
+
+.qr-code {
+  transition: all 0.3s ease;
+  border: 1px solid rgb(var(--color-primary));
+}
+
+.download-btn {
+  background: linear-gradient(
+    to right, 
+    rgb(var(--color-primary)), 
+    rgb(var(--color-secondary))
+  );
+}

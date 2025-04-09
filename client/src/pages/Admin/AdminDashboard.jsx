@@ -1,68 +1,125 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import axios from 'axios';
+import { Modal, Button, Form } from 'react-bootstrap';
+import '../styles/AdminDashboard.css';
+
+const API = process.env.REACT_APP_API_BASE_URL;
 
 const AdminDashboard = () => {
-  const { user } = useAuth();
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalQRCodes, setTotalQRCodes] = useState(0);
+  const [recentQRCodes, setRecentQRCodes] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [updatedUserData, setUpdatedUserData] = useState({});
+
+  const fetchDashboardData = async () => {
+    try {
+      const [usersRes, qrRes, recentQRRes] = await Promise.all([
+        axios.get(`${API}/admin/users`),
+        axios.get(`${API}/admin/qr-codes/count`),
+        axios.get(`${API}/admin/qr-codes/recent`)
+      ]);
+
+      setUsers(usersRes.data);
+      setTotalUsers(usersRes.data.length);
+      setTotalQRCodes(qrRes.data.count);
+      setRecentQRCodes(recentQRRes.data);
+    } catch (err) {
+      console.error('Failed to load admin dashboard:', err);
+    }
+  };
+
+  const openEditModal = (user) => {
+    setSelectedUser(user);
+    setUpdatedUserData({ name: user.name, email: user.email });
+    setShowEditModal(true);
+  };
+
+  const handleUserUpdate = async () => {
+    try {
+      await axios.put(`${API}/admin/users/${selectedUser._id}`, updatedUserData);
+      setShowEditModal(false);
+      fetchDashboardData();
+    } catch (err) {
+      console.error('Failed to update user:', err);
+    }
+  };
 
   useEffect(() => {
-    // In a real app, you would fetch admin stats from the backend
-    const fetchStats = async () => {
-      try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setStats({
-          totalUsers: 42,
-          totalQRCodes: 128,
-          recentQRCodes: 15,
-        });
-      } catch (err) {
-        setError('Failed to fetch stats');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
+    fetchDashboardData();
   }, []);
 
-  if (loading) {
-    return <div className="text-center py-12">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="text-center py-12 text-red-600">{error}</div>;
-  }
-
   return (
-    <div className="py-8">
-      <h1 className="text-2xl font-bold text-gray-800 mb-8">Admin Dashboard</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Total Users</h3>
-          <p className="text-3xl font-bold text-indigo-600">{stats.totalUsers}</p>
+    <div className="admin-dashboard container mt-5">
+      <h2 className="mb-4">Admin Dashboard</h2>
+      <div className="stats mb-4 d-flex gap-4">
+        <div className="stat-box p-3 bg-light rounded shadow-sm">
+          <h5>Total Users</h5>
+          <p>{totalUsers}</p>
         </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Total QR Codes</h3>
-          <p className="text-3xl font-bold text-indigo-600">{stats.totalQRCodes}</p>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Recent QR Codes (7d)</h3>
-          <p className="text-3xl font-bold text-indigo-600">{stats.recentQRCodes}</p>
+        <div className="stat-box p-3 bg-light rounded shadow-sm">
+          <h5>Total QR Codes</h5>
+          <p>{totalQRCodes}</p>
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Welcome, {user?.username}</h2>
-        <p className="text-gray-600">
-          You have admin privileges to manage the application.
-        </p>
-      </div>
+      <h4 className="mt-4">Recent QR Codes</h4>
+      <ul className="list-group mb-5">
+        {recentQRCodes.map((qr) => (
+          <li key={qr._id} className="list-group-item">
+            <strong>{qr.name || 'Unnamed QR'}</strong> — Uploaded by {qr.user?.email || 'N/A'}
+          </li>
+        ))}
+      </ul>
+
+      <h4>Edit Users</h4>
+      <ul className="list-group">
+        {users.map((user) => (
+          <li key={user._id} className="list-group-item d-flex justify-content-between align-items-center">
+            <span>{user.name} ({user.email})</span>
+            <button className="btn btn-sm btn-primary" onClick={() => openEditModal(user)}>
+              Edit
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {/* Edit User Modal */}
+      <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit User</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group controlId="formUserName" className="mb-3">
+              <Form.Label>Name</Form.Label>
+              <Form.Control
+                type="text"
+                value={updatedUserData.name}
+                onChange={(e) => setUpdatedUserData({ ...updatedUserData, name: e.target.value })}
+              />
+            </Form.Group>
+            <Form.Group controlId="formUserEmail" className="mb-3">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                value={updatedUserData.email}
+                onChange={(e) => setUpdatedUserData({ ...updatedUserData, email: e.target.value })}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleUserUpdate}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

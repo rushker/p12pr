@@ -1,4 +1,3 @@
-# server/render.yaml
 services:
   - type: web
     name: qr-code-server
@@ -15,13 +14,18 @@ services:
           name: qr-code-db
           property: connectionString
       - key: JWT_SECRET
-        generateValue: true
+        generateValue: true  # Render will auto-generate a secure secret
       - key: CLOUDINARY_CLOUD_NAME
-        sync: false
+        sync: false  # You'll manually set this in Render's dashboard
       - key: CLOUDINARY_API_KEY
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
+      - key: CLIENT_URL
+        value: https://p12pr.vercel.app
+      - key: ALLOWED_ORIGINS
+        value: https://p12pr.vercel.app,http://localhost:3000
+
 databases:
   - name: qr-code-db
     databaseName: qr-code

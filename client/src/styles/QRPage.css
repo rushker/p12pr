@@ -1,0 +1,17 @@
+.qr-upload-area {
+    border: 2px dashed rgba(var(--color-primary), 0.5);
+    transition: all 0.3s ease;
+  }
+  
+  .qr-upload-area:hover {
+    border-color: rgb(var(--color-primary));
+    background-color: rgba(var(--color-primary), 0.05);
+  }
+  
+  .qr-preview {
+    transition: transform 0.3s ease;
+  }
+  
+  .qr-preview:hover {
+    transform: scale(1.03);
+  }

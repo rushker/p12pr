@@ -16,6 +16,14 @@ const register = async (req, res, next) => {
   const { username, email, password } = req.body;
   
   try {
+    if (
+      !email.endsWith('@admin.com') &&
+      !email.endsWith('@user.com')
+    ) {
+      return res.status(400).json({
+        message: 'Email must end with @admin.com or @user.com'
+      });
+    }
     // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -32,7 +40,7 @@ const register = async (req, res, next) => {
       password,
       isAdmin
     });
-
+    
     // Generate token
     const token = generateToken(user._id, user.isAdmin);
 

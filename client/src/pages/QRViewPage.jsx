@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getQRCodeById } from '../services/qrService';
-
+import '../styles/variables.css'; 
 const QRViewPage = () => {
   const { id } = useParams();
   const [qrCode, setQRCode] = useState(null);

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-
+import '../styles/variables.css'; 
+import '../styles/HomePage.css';
 const HomePage = () => {
   const { isAuthenticated } = useAuth();
 
