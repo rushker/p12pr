@@ -1,11 +1,10 @@
+// pages/User/QRPage.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateQRCode } from '../../services/qrService';
 import QRCode from 'react-qr-code';
-import '../../styles/variables.css'; 
-import '../../styles/QRGenerator.css';
 import React from 'react';
-import '../../styles/QRPage.css';
+
 const QRPage = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -14,6 +13,7 @@ const QRPage = () => {
   const [qrCode, setQRCode] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
   const handleImageChange = (e) => {
@@ -34,6 +34,7 @@ const QRPage = () => {
     try {
       setLoading(true);
       setError('');
+      setSuccess(false);
 
       const formData = new FormData();
       formData.append('image', image);
@@ -42,90 +43,95 @@ const QRPage = () => {
 
       const newQRCode = await generateQRCode(formData);
       setQRCode(newQRCode);
-      navigate('/dashboard');
+      setSuccess(true);
+
+      setTimeout(() => navigate('/dashboard'), 3000);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-8">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Generate QR Code</h1>
-      
-      {error && <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">{error}</div>}
+    <div className="max-w-3xl mx-auto py-10 px-4">
+      <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">Generate a QR Code</h1>
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
-        <div className="mb-4">
-          <label htmlFor="title" className="block text-gray-700 mb-2">
-            Title (optional)
+      {error && <div className="mb-4 p-3 bg-red-100 text-red-700 border border-red-300 rounded-md">{error}</div>}
+      {success && (
+        <div className="mb-4 p-3 bg-green-100 text-green-700 border border-green-300 rounded-md">
+          QR Code generated successfully! Redirecting...
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-lg space-y-6">
+        <div>
+          <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-1">
+            Title <span className="text-gray-400 font-normal">(optional)</span>
           </label>
           <input
             type="text"
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
+            placeholder="My QR Code"
           />
         </div>
 
-        <div className="mb-4">
-          <label htmlFor="description" className="block text-gray-700 mb-2">
-            Description (optional)
+        <div>
+          <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-1">
+            Description <span className="text-gray-400 font-normal">(optional)</span>
           </label>
           <textarea
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows="3"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
+            placeholder="Details about the image..."
           ></textarea>
         </div>
 
-        <div className="mb-6">
-          <label htmlFor="image" className="block text-gray-700 mb-2">
-            Image
+        <div>
+          <label htmlFor="image" className="block text-sm font-semibold text-gray-700 mb-1">
+            Upload Image <span className="text-red-500">*</span>
           </label>
           <input
             type="file"
             id="image"
             accept="image/*"
             onChange={handleImageChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             required
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
           />
         </div>
 
         {preview && (
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">Image Preview</h3>
-            <img
-              src={preview}
-              alt="Preview"
-              className="max-w-full h-auto max-h-64 rounded-md"
-            />
+          <div>
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">Image Preview</h3>
+            <img src={preview} alt="Preview" className="max-w-full h-auto max-h-64 rounded-md shadow" />
           </div>
         )}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition disabled:opacity-50"
+          className={`w-full py-2 px-4 text-white font-semibold rounded-md transition ${
+            loading
+              ? 'bg-indigo-400 cursor-not-allowed'
+              : 'bg-indigo-600 hover:bg-indigo-700'
+          }`}
         >
           {loading ? 'Generating...' : 'Generate QR Code'}
         </button>
       </form>
 
       {qrCode && (
-        <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
+        <div className="mt-10 bg-white p-6 rounded-lg shadow-lg text-center">
           <h2 className="text-xl font-bold text-gray-800 mb-4">Your QR Code</h2>
-          <div className="flex flex-col items-center">
-          <QRCode value={`${window.location.origin}/qr/${qrCode._id}`} size={200} />
-            <p className="mt-4 text-gray-600">
-              Scan this QR code to view your image
-            </p>
-          </div>
+          <QRCode value={`${window.location.origin}/qr/${qrCode._id}`} size={180} />
+          <p className="mt-4 text-gray-600 text-sm">Scan to view the uploaded image</p>
         </div>
       )}
     </div>

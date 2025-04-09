@@ -1,61 +1,63 @@
+// pages/User/QRViewPage.jsx
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getQRCodeById } from '../services/qrService';
-import '../styles/variables.css'; 
+import QRCode from 'react-qr-code';
+
 const QRViewPage = () => {
   const { id } = useParams();
-  const [qrCode, setQRCode] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [qrData, setQRData] = useState(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchQRCode = async () => {
+    const fetchQR = async () => {
       try {
         const data = await getQRCodeById(id);
-        setQRCode(data);
+        setQRData(data);
       } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+        setError(err.response?.data?.message || 'QR Code not found');
       }
     };
-
-    fetchQRCode();
+    fetchQR();
   }, [id]);
 
-  if (loading) {
-    return <div className="text-center py-12">Loading...</div>;
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-600 text-lg">
+        {error}
+      </div>
+    );
   }
 
-  if (error) {
-    return <div className="text-center py-12 text-red-600">{error}</div>;
+  if (!qrData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-600 text-lg">
+        Loading QR Code...
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8">
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        {qrCode.title && (
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">{qrCode.title}</h1>
-        )}
-        
-        <div className="flex justify-center mb-6">
-          <img
-            src={qrCode.imageUrl}
-            alt={qrCode.title || 'QR Code Image'}
-            className="max-w-full h-auto max-h-96 rounded-md"
-          />
-        </div>
+    <div className="max-w-4xl mx-auto px-4 py-10">
+      <div className="bg-white p-6 rounded-lg shadow-md text-center">
+        <h1 className="text-2xl font-bold text-gray-800 mb-4">{qrData.title || 'QR Code Viewer'}</h1>
 
-        {qrCode.description && (
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">Description</h2>
-            <p className="text-gray-600">{qrCode.description}</p>
+        <div className="flex flex-col lg:flex-row justify-center items-center gap-8">
+          <QRCode value={window.location.href} size={200} />
+
+          <div className="w-full max-w-md">
+            <h2 className="text-lg font-semibold text-gray-700 mb-2">Linked Image:</h2>
+            <img
+              src={qrData.imageUrl}
+              alt="Uploaded"
+              className="w-full max-h-[400px] object-contain rounded border"
+            />
           </div>
-        )}
-
-        <div className="text-sm text-gray-500">
-          Shared by: {qrCode.user?.username || 'Unknown'}
         </div>
+
+        {qrData.description && (
+          <p className="mt-6 text-gray-600 italic">{qrData.description}</p>
+        )}
       </div>
     </div>
   );

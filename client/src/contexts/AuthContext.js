@@ -1,7 +1,10 @@
-// client/src/contexts/AuthContext.js
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { login as authLogin, register as authRegister, getMe } from '../services/authService';
+import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  login as authLogin,
+  register as authRegister,
+  getMe,
+} from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -10,61 +13,82 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Check if user is logged in on initial load
+  // Check if user is already logged in
   useEffect(() => {
-    const checkLoggedIn = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          setLoading(false);
-          return;
-        }
+    const fetchUser = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
+      try {
         const userData = await getMe();
         setUser(userData);
       } catch (err) {
+        console.error('Error fetching user:', err.message);
         localStorage.removeItem('token');
-        setError(err.message);
+        setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
-    checkLoggedIn();
+    fetchUser();
   }, []);
 
-  // Login user
+  // Login
   const login = async (email, password) => {
+    setLoading(true);
+    setError(null);
     try {
       const { user: userData, token } = await authLogin(email, password);
       localStorage.setItem('token', token);
       setUser(userData);
-      navigate(userData.isAdmin ? '/admin' : '/dashboard');
+
+      if (userData.isAdmin) {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Login failed');
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Register user
+  // Register
   const register = async (username, email, password) => {
+    setLoading(true);
+    setError(null);
     try {
       const { user: userData, token } = await authRegister(username, email, password);
       localStorage.setItem('token', token);
       setUser(userData);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Registration failed');
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Logout user
+  // Logout
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
-    navigate('/login');
+
+    // If currently on admin route, redirect to home
+    if (location.pathname.startsWith('/admin')) {
+      navigate('/');
+    } else {
+      navigate('/login');
+    }
   };
 
   return (

@@ -1,16 +1,24 @@
-// src/components/qr/QRDisplay.jsx
 import React from 'react';
-import '../../../styles/variables.css';
-import '../../../styles/QRGenerator.css';
 
 const QRDisplay = ({ code }) => {
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.href = code;
+    link.download = 'qr-code.png';
+    link.click();
+  };
+
   return (
-    <div className="qr-container p-6 rounded-xl">
-      <div className="qr-code hover:shadow-lg">
-        <img src={code} alt="QR Code" className="w-full h-full" />
+    <div className="max-w-md mx-auto bg-white shadow-lg rounded-xl p-6 text-center">
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">Your QR Code</h2>
+
+      <div className="flex justify-center items-center bg-gray-100 p-4 rounded-md border border-gray-300">
+        <img src={code} alt="QR Code" className="w-48 h-48 object-contain" />
       </div>
-      <button 
-        className="download-btn mt-6 px-6 py-3 rounded-lg font-bold transition-all hover:opacity-90"
+
+      <button
+        onClick={handleDownload}
+        className="mt-6 inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-md transition"
       >
         Download QR
       </button>

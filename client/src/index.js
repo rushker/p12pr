@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
-import './styles/variables.css'; 
+
 
 // Import Inter font from Google Fonts
 import '@fontsource/inter/400.css';

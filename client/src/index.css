@@ -4,9 +4,9 @@
 
 @layer base {
   :root {
-    --color-primary: 79 70 229; /* indigo-600 */
-    --color-secondary: 99 102 241; /* indigo-500 */
-    --color-danger: 239 68 68; /* red-500 */
+    --color-primary: 79 70 229;     /* indigo-600 */
+    --color-secondary: 99 102 241;  /* indigo-500 */
+    --color-danger: 239 68 68;      /* red-500 */
   }
 
   body {
@@ -16,34 +16,60 @@
   h1 {
     @apply text-3xl font-bold text-gray-800 md:text-4xl;
   }
-  
+
   h2 {
     @apply text-2xl font-bold text-gray-800 md:text-3xl;
   }
 
-  input, textarea, select {
+  input,
+  textarea,
+  select {
     @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent;
+  }
+
+  button {
+    @apply focus:outline-none;
   }
 }
 
 @layer components {
   .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors duration-200;
   }
-  
+
   .btn-primary {
     @apply bg-indigo-600 text-white hover:bg-indigo-700;
   }
-  
+
+  .btn-secondary {
+    @apply bg-indigo-500 text-white hover:bg-indigo-600;
+  }
+
+  .btn-danger {
+    @apply bg-red-500 text-white hover:bg-red-600;
+  }
+
   .card {
     @apply bg-white rounded-xl shadow-md overflow-hidden;
   }
-  
+
   .alert {
     @apply p-3 rounded-lg border;
   }
-  
+
   .alert-error {
     @apply bg-red-50 border-red-200 text-red-700;
+  }
+
+  .alert-success {
+    @apply bg-green-50 border-green-200 text-green-700;
+  }
+
+  .modal-backdrop {
+    @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+  }
+
+  .modal-content {
+    @apply bg-white p-6 rounded-lg shadow-lg max-w-md w-full;
   }
 }

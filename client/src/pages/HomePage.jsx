@@ -1,16 +1,17 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import '../styles/variables.css'; 
-import '../styles/HomePage.css';
+
 const HomePage = () => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="py-12 text-center">
-      <h1 className="text-4xl font-bold text-gray-800 mb-6">Welcome to QRShare</h1>
-      <p className="text-xl text-gray-600 mb-8">
-        Easily generate QR codes for your images and share them with the world
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 px-4 text-center">
+      <h1 className="text-4xl font-bold text-gray-800 mb-4">Welcome to QRShare</h1>
+      <p className="text-lg text-gray-600 mb-6 max-w-xl">
+        Easily generate QR codes for your images and share them with the world.
+        Upload once, share anywhere — no links or downloads required.
       </p>
+
       {!isAuthenticated ? (
         <div className="space-x-4">
           <Link
