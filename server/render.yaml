@@ -1,0 +1,28 @@
+# server/render.yaml
+services:
+  - type: web
+    name: qr-code-server
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGO_URI
+        fromDatabase:
+          name: qr-code-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+databases:
+  - name: qr-code-db
+    databaseName: qr-code
+    user: qr-code-user
