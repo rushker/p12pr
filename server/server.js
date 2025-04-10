@@ -29,7 +29,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Use the combined routes
-app.use('/api', require('./routes'));
+app.use('/', require('./routes'));
 
 // Error handling middleware
 app.use(errorHandler);

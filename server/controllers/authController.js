@@ -12,49 +12,39 @@ if (fs.existsSync(adminsPath)) {
 }
 
 // Register user
-const register = async (req, res, next) => {
+const registerUser = async (req, res) => {
   const { username, email, password } = req.body;
-  
-  try {
-    if (
-      !email.endsWith('@admin.com') &&
-      !email.endsWith('@user.com')
-    ) {
-      return res.status(400).json({
-        message: 'Email must end with @admin.com or @user.com'
-      });
-    }
-    // Check if user exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
 
-    // Check if admin
-    const isAdmin = admins.some(admin => admin.email === email);
+  if (!username || !email || !password) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
 
-    // Create user
-    const user = await User.create({
-      username,
-      email,
-      password,
-      isAdmin
-    });
-    
-    // Generate token
-    const token = generateToken(user._id, user.isAdmin);
+  // check if user exists
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    return res.status(400).json({ message: 'Email already registered' });
+  }
 
-    res.status(201).json({
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = await User.create({
+    username,
+    email,
+    password: hashedPassword,
+  });
+
+  if (user) {
+    return res.status(201).json({
       _id: user._id,
       username: user.username,
       email: user.email,
       isAdmin: user.isAdmin,
-      token
+      token: generateToken(user._id),
     });
-  } catch (error) {
-    next(error);
+  } else {
+    return res.status(500).json({ message: 'Failed to create user' });
   }
 };
+
 
 // Login user
 const login = async (req, res, next) => {
