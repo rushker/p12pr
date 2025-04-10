@@ -109,4 +109,10 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    console.warn('⚠️ useAuth was called outside of AuthProvider');
+  }
+  return context;
+};

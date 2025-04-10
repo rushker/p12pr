@@ -10,7 +10,11 @@ import {
 } from '@heroicons/react/24/outline';
 
 const Header = () => {
-  const { user, logout, isAuthenticated, isAdmin } = useAuth();
+  const auth = useAuth();
+
+if (!auth) return null; // Or show a fallback/error UI
+
+const { user, logout, isAuthenticated, isAdmin } = auth;
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
