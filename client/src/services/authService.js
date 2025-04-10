@@ -5,7 +5,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 // Login
 const login = async (email, password) => {
-  const response = await axios.post(`${API_BASE_URL}/api/auth/login`, {
+  const response = await axios.post(`${API_BASE_URL}/auth/login`, {
     email,
     password,
   });
@@ -23,7 +23,7 @@ const login = async (email, password) => {
 
 // Register
 const register = async (username, email, password) => {
-  const response = await axios.post(`${API_BASE_URL}/api/auth/register`, {
+  const response = await axios.post(`${API_BASE_URL}/auth/register`, {
     username,
     email,
     password,
@@ -43,7 +43,7 @@ const register = async (username, email, password) => {
 // Get current user
 const getMe = async () => {
   const token = localStorage.getItem('token');
-  const response = await axios.get(`${API_BASE_URL}/api/auth/me`, {
+  const response = await axios.get(`${API_BASE_URL}/auth/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

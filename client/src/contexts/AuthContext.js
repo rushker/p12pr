@@ -45,22 +45,26 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const { user: userData, token } = await authLogin(email, password);
+      const res = await authLogin(email, password); // returns full user object with token
+      const { token, ...userData } = res;
+  
       localStorage.setItem('token', token);
       setUser(userData);
-
+  
       if (userData.isAdmin) {
         navigate('/admin');
       } else {
         navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.message || 'Login failed');
+      localStorage.removeItem('token'); // Make sure we clean up bad tokens
+      setError(err.response?.data?.message || err.message || 'Login failed');
       throw err;
     } finally {
       setLoading(false);
     }
   };
+  
 
   // Register
   const register = async (username, email, password) => {

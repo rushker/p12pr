@@ -31,6 +31,11 @@ app.use(express.urlencoded({ extended: false }));
 // Use the combined routes
 app.use('/api', require('./routes'));
 
+// Catch-all for unknown API routes
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ message: 'API route not found' });
+});
+
 // Error handling middleware
 app.use(errorHandler);
 
