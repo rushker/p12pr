@@ -16,26 +16,27 @@ const protect = async (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Get user from token
+      // Get user from token, excluding password
       req.user = await User.findById(decoded.id).select('-password');
 
-      next();
+      return next();
     } catch (error) {
       console.error(error);
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      return res.status(401).json({ message: 'Not authorized, token failed' });
     }
   }
 
+  // If no token provided
   if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token' });
+    return res.status(401).json({ message: 'Not authorized, no token' });
   }
 };
 
 const admin = (req, res, next) => {
   if (req.user && req.user.isAdmin) {
-    next();
+    return next();
   } else {
-    res.status(401).json({ message: 'Not authorized as an admin' });
+    return res.status(401).json({ message: 'Not authorized as an admin' });
   }
 };
 

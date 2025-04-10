@@ -1,5 +1,6 @@
 // server/controllers/authController.js
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const fs = require('fs');
 const path = require('path');
@@ -19,7 +20,6 @@ const registerUser = async (req, res) => {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
-  // check if user exists
   const userExists = await User.findOne({ email });
   if (userExists) {
     return res.status(400).json({ message: 'Email already registered' });
@@ -45,9 +45,8 @@ const registerUser = async (req, res) => {
   }
 };
 
-
 // Login user
-const login = async (req, res, next) => {
+const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
@@ -95,7 +94,7 @@ const generateToken = (id, isAdmin) => {
 };
 
 module.exports = {
-  register,
-  login,
+  registerUser,
+  loginUser,
   getMe,
 };
