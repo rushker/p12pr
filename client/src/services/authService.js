@@ -1,9 +1,14 @@
 // services/authService.js
 import axios from '../api/axiosConfig';
-import { API_BASE_URL } from '../api/endpoints';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
+// Login
 const login = async (email, password) => {
-  const response = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
+  const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+    email,
+    password,
+  });
 
   return {
     user: {
@@ -16,6 +21,7 @@ const login = async (email, password) => {
   };
 };
 
+// Register
 const register = async (username, email, password) => {
   const response = await axios.post(`${API_BASE_URL}/auth/register`, {
     username,
@@ -34,6 +40,7 @@ const register = async (username, email, password) => {
   };
 };
 
+// Get current user
 const getMe = async () => {
   const token = localStorage.getItem('token');
   const response = await axios.get(`${API_BASE_URL}/auth/me`, {
@@ -41,6 +48,7 @@ const getMe = async () => {
       Authorization: `Bearer ${token}`,
     },
   });
+
   return response.data;
 };
 
