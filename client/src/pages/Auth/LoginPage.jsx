@@ -1,4 +1,3 @@
-// pages/Auth/LoginPage.jsx
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { LockClosedIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
@@ -15,10 +14,14 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
     try {
       await login(email, password);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Login failed');
+      console.error('Login error:', err); // helpful for debugging
+      const msg =
+        err.response?.data?.message || 'Something went wrong. Please try again.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -27,12 +30,16 @@ const LoginPage = () => {
   return (
     <div className="max-w-md mx-auto mt-16 p-8 bg-white rounded-xl shadow-md">
       <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Login to Your Account</h2>
+
+      {/* Inline error box */}
       {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md border border-red-300">
+        <div className="mb-6 px-4 py-3 bg-red-100 border border-red-300 text-red-700 rounded-md text-sm">
           {error}
         </div>
       )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Email field */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
             Email Address
@@ -50,6 +57,8 @@ const LoginPage = () => {
             />
           </div>
         </div>
+
+        {/* Password field */}
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
             Password
@@ -68,6 +77,8 @@ const LoginPage = () => {
             />
           </div>
         </div>
+
+        {/* Submit button */}
         <button
           type="submit"
           disabled={loading}
@@ -76,6 +87,7 @@ const LoginPage = () => {
           {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
+
       <div className="mt-6 text-center text-sm text-gray-600">
         Don’t have an account?{' '}
         <Link to="/register" className="text-indigo-600 hover:underline">
