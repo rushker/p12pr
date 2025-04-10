@@ -1,4 +1,3 @@
-// server/controllers/authController.js
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
@@ -32,17 +31,13 @@ const registerUser = async (req, res) => {
     password: hashedPassword,
   });
 
-  if (user) {
-    return res.status(201).json({
-      _id: user._id,
-      username: user.username,
-      email: user.email,
-      isAdmin: user.isAdmin,
-      token: generateToken(user._id),
-    });
-  } else {
-    return res.status(500).json({ message: 'Failed to create user' });
-  }
+  return res.status(201).json({
+    _id: user._id,
+    username: user.username,
+    email: user.email,
+    isAdmin: user.isAdmin,
+    token: generateToken(user._id, user.isAdmin),
+  });
 };
 
 // Login user
@@ -68,25 +63,22 @@ const loginUser = async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const isMatch = await user.comparePassword(password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-
-    const token = generateToken(user._id, user.isAdmin);
 
     res.json({
       _id: user._id,
       username: user.username,
       email: user.email,
       isAdmin: user.isAdmin,
-      token
+      token: generateToken(user._id, user.isAdmin),
     });
   } catch (error) {
     next(error);
   }
 };
-
 
 // Get current user
 const getMe = async (req, res, next) => {
