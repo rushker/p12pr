@@ -50,8 +50,20 @@ const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    // 🔍 Check admins.json first
+    const admin = admins.find(admin => admin.email === email && admin.password === password);
+    if (admin) {
+      return res.json({
+        _id: 'admin-id',
+        username: 'Admin',
+        email: admin.email,
+        isAdmin: true,
+        token: generateToken('admin-id', true),
+      });
+    }
 
+    // 👤 Otherwise, check MongoDB
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -61,7 +73,6 @@ const loginUser = async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Generate token
     const token = generateToken(user._id, user.isAdmin);
 
     res.json({
@@ -75,6 +86,7 @@ const loginUser = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // Get current user
 const getMe = async (req, res, next) => {
