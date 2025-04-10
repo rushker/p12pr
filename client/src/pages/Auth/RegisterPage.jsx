@@ -25,6 +25,10 @@ const RegisterPage = () => {
     setLoading(true);
     try {
       await register(username, email, password);
+      setUsername('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
     } catch (err) {
       const message = err.response?.data?.message || err.message || 'Registration failed';
 
