@@ -10,6 +10,10 @@
     {
       "source": "/api/(.*)",
       "destination": "https://p12pr.onrender.com/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "./build/index.html"
     }
   ]
 }
