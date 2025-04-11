@@ -37,21 +37,24 @@ const HomePage = () => {
           </Link>
         </div>
       ) : (
-        <div className="flex flex-col gap-4 items-center">
+        <div className="flex flex-col items-center space-y-4">
+          {/* Styled "Go to Dashboard" button */}
           <Link
             to="/dashboard"
-            className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+            className="w-full max-w-xs text-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
           >
             Go to Dashboard
           </Link>
 
-          {/* 👇 Debug: Manually test admin redirect */}
-          <button
-            onClick={() => navigate('/admin')}
-            className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-          >
-            Go to Admin (Debug)
-          </button>
+          {/* Admin debug button - only visible if isAdmin is true */}
+          {isAdmin && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="w-full max-w-xs px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+            >
+              Go to Admin (Debug)
+            </button>
+          )}
         </div>
       )}
     </div>
