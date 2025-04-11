@@ -48,17 +48,22 @@ export const AuthProvider = ({ children }) => {
       const res = await authLogin(email, password); // returns full user object with token
       const { token, ...userData } = res;
   
+      console.log('✅ Login successful:', userData); // 👈 Log user data
+  
       localStorage.setItem('token', token);
       setUser(userData);
   
       if (userData.isAdmin) {
+        console.log('🔁 Navigating to /admin'); // 👈 Log redirect
         navigate('/admin');
       } else {
+        console.log('🔁 Navigating to /dashboard');
         navigate('/dashboard');
       }
     } catch (err) {
-      localStorage.removeItem('token'); // Make sure we clean up bad tokens
+      localStorage.removeItem('token');
       setError(err.response?.data?.message || err.message || 'Login failed');
+      console.error('❌ Login failed:', err); // 👈 Log error
       throw err;
     } finally {
       setLoading(false);

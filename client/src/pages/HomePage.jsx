@@ -1,8 +1,17 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useEffect } from 'react';
 
 const HomePage = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user, isAdmin } = useAuth();
+  const navigate = useNavigate();
+
+  // Debug logs on load
+  useEffect(() => {
+    console.log('👤 Authenticated:', isAuthenticated);
+    console.log('👑 Is Admin:', isAdmin);
+    console.log('📦 User:', user);
+  }, [isAuthenticated, isAdmin, user]);
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 px-4 text-center">
@@ -28,12 +37,22 @@ const HomePage = () => {
           </Link>
         </div>
       ) : (
-        <Link
-          to="/dashboard"
-          className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-        >
-          Go to Dashboard
-        </Link>
+        <div className="flex flex-col gap-4 items-center">
+          <Link
+            to="/dashboard"
+            className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+          >
+            Go to Dashboard
+          </Link>
+
+          {/* 👇 Debug: Manually test admin redirect */}
+          <button
+            onClick={() => navigate('/admin')}
+            className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+          >
+            Go to Admin (Debug)
+          </button>
+        </div>
       )}
     </div>
   );
