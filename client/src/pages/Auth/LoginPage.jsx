@@ -1,15 +1,28 @@
-//client/src/pages/Auth/LoginPage.jsx
-import { useState } from 'react';
+// client/src/pages/Auth/LoginPage.jsx
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { LockClosedIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+
+  const { login, user } = useAuth();
+  const navigate = useNavigate();
+
+  // ✅ Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      if (user.isAdmin) {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,9 +32,8 @@ const LoginPage = () => {
     try {
       await login(email, password);
     } catch (err) {
-      console.error('Login error:', err); // helpful for debugging
-      const msg =
-        err.response?.data?.message || 'Something went wrong. Please try again.';
+      console.error('Login error:', err);
+      const msg = err.response?.data?.message || 'Something went wrong. Please try again.';
       setError(msg);
     } finally {
       setLoading(false);
@@ -32,7 +44,6 @@ const LoginPage = () => {
     <div className="max-w-md mx-auto mt-16 p-8 bg-white rounded-xl shadow-md">
       <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Login to Your Account</h2>
 
-      {/* Inline error box */}
       {error && (
         <div className="mb-6 px-4 py-3 bg-red-100 border border-red-300 text-red-700 rounded-md text-sm">
           {error}
@@ -40,7 +51,7 @@ const LoginPage = () => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Email field */}
+        {/* Email */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
             Email Address
@@ -59,7 +70,7 @@ const LoginPage = () => {
           </div>
         </div>
 
-        {/* Password field */}
+        {/* Password */}
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
             Password
@@ -79,11 +90,13 @@ const LoginPage = () => {
           </div>
         </div>
 
-        {/* Submit button */}
+        {/* Button */}
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-2 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
+          className={`w-full py-2 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition ${
+            loading ? 'opacity-60 cursor-not-allowed' : ''
+          }`}
         >
           {loading ? 'Logging in...' : 'Login'}
         </button>
