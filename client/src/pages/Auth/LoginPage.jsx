@@ -1,4 +1,4 @@
-//LoginPage.jsx
+//client/src/pages/Auth/LoginPage.jsx
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { LockClosedIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
