@@ -1,4 +1,4 @@
-// services/authService.js
+// src/services/authService.js
 import axios from '../api/axiosConfig';
 
 // Login

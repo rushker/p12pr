@@ -1,4 +1,4 @@
-// App.js
+// src/App.js
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext'; // 👈 ADD THIS BACK
 import ProtectedRoute from './components/common/ProtectedRoute';

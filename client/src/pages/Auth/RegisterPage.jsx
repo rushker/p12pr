@@ -1,3 +1,5 @@
+// client/src/pages/Auth/RegisterPage.jsx
+
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
