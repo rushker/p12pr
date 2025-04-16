@@ -19,6 +19,8 @@ const generateQRCode = async (req, res, next) => {
       folder: 'qr-code-images',
       public_id: `${uuidv4()}`,
       resource_type: 'auto',
+    }).catch(err => {
+      throw new Error(`Cloudinary upload failed: ${err.message}`);
     });
 
     // Generate QR code for the image URL
@@ -39,6 +41,10 @@ const generateQRCode = async (req, res, next) => {
 
     res.status(201).json(qrCode);
   } catch (error) {
+    // Clean up uploaded file if error occurs
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
     next(error);
   }
 };

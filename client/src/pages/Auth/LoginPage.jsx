@@ -1,28 +1,17 @@
 // client/src/pages/Auth/LoginPage.jsx
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { LockClosedIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link} from 'react-router-dom';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@admin.com'); // Default for testing
+  const [password, setPassword] = useState('123456'); // Default for testing
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const { login, user } = useAuth();
-  const navigate = useNavigate();
-
-  // ✅ Redirect if already logged in
-  useEffect(() => {
-    if (user) {
-      if (user.isAdmin) {
-        navigate('/admin');
-      } else {
-        navigate('/dashboard');
-      }
-    }
-  }, [user, navigate]);
+  
+  const { login } = useAuth();
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,11 +20,9 @@ const LoginPage = () => {
 
     try {
       await login(email, password);
+      // Navigation is handled in AuthContext after successful login
     } catch (err) {
-      console.error('Login error:', err);
-      const msg = err.response?.data?.message || 'Something went wrong. Please try again.';
-      setError(msg);
-    } finally {
+      setError(err.message || 'Login failed');
       setLoading(false);
     }
   };

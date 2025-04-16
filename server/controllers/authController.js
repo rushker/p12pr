@@ -5,11 +5,18 @@ const fs = require('fs');
 const path = require('path');
 
 // Load admin data
-const adminsPath = path.join(__dirname, '../data/admins.json');
+const adminsPath = path.resolve(__dirname, '../data/admins.json');
 let admins = [];
 if (fs.existsSync(adminsPath)) {
   admins = JSON.parse(fs.readFileSync(adminsPath, 'utf-8'));
 }
+
+// Generate JWT token
+const generateToken = (id, isAdmin) => {
+  return jwt.sign({ id, isAdmin }, process.env.JWT_SECRET, {
+    expiresIn: '30d',
+  });
+};
 
 // Register user
 const registerUser = async (req, res) => {
@@ -88,13 +95,6 @@ const getMe = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
-
-// Generate JWT token
-const generateToken = (id, isAdmin) => {
-  return jwt.sign({ id, isAdmin }, process.env.JWT_SECRET, {
-    expiresIn: '30d',
-  });
 };
 
 module.exports = {

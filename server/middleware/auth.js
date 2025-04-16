@@ -1,4 +1,4 @@
-// server/middleware/auth.js
+//middleware/auth.js
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
@@ -13,30 +13,35 @@ const protect = async (req, res, next) => {
       // Get token from header
       token = req.headers.authorization.split(' ')[1];
 
-      // Verify token
+      // Verify token - handle both admin and regular users
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Special handling for admin user from admins.json
+      if (decoded.id === 'admin-id') {
+        req.user = {
+          id: 'admin-id',
+          isAdmin: true
+        };
+        return next();
+      }
 
       // Get user from token, excluding password
       req.user = await User.findById(decoded.id).select('-password');
-
-      return next();
+      next();
     } catch (error) {
-      console.error(error);
+      console.error('Token verification error:', error);
       return res.status(401).json({ message: 'Not authorized, token failed' });
     }
-  }
-
-  // If no token provided
-  if (!token) {
+  } else {
     return res.status(401).json({ message: 'Not authorized, no token' });
   }
 };
 
 const admin = (req, res, next) => {
   if (req.user && req.user.isAdmin) {
-    return next();
+    next();
   } else {
-    return res.status(401).json({ message: 'Not authorized as an admin' });
+    res.status(403).json({ message: 'Not authorized as admin' });
   }
 };
 

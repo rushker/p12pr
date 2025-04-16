@@ -1,11 +1,7 @@
-//contexts/AuthContext.jsx
+// client/src/contexts/AuthContext.js
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import {
-  login as authLogin,
-  register as authRegister,
-  getMe,
-} from '../services/authService';
+import { useNavigate } from 'react-router-dom';
+import { login as authLogin, register as authRegister, getMe } from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -14,11 +10,11 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const location = useLocation();
 
-  // Check if user is already logged in
+
+  // Initialize auth state
   useEffect(() => {
-    const fetchUser = async () => {
+    const initializeAuth = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
         setLoading(false);
@@ -29,76 +25,65 @@ export const AuthProvider = ({ children }) => {
         const userData = await getMe();
         setUser(userData);
       } catch (err) {
-        console.error('Error fetching user:', err.message);
+        console.error('Auth initialization error:', err);
         localStorage.removeItem('token');
-        setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUser();
+    initializeAuth();
   }, []);
 
-  // Login
+  // Login function - fixed to properly handle admin
   const login = async (email, password) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await authLogin(email, password); // returns full user object with token
-      const { token, ...userData } = res;
-  
-      console.log('✅ Login successful:', userData); // 👈 Log user data
-  
+      const response = await authLogin(email, password);
+      const { token, ...userData } = response;
+
       localStorage.setItem('token', token);
       setUser(userData);
-  
-      if (userData.isAdmin) {
-        console.log('🔁 Navigating to /admin'); // 👈 Log redirect
-        navigate('/admin');
-      } else {
-        console.log('🔁 Navigating to /dashboard');
-        navigate('/dashboard');
-      }
+
+      // Redirect based on user role
+      const redirectPath = userData.isAdmin ? '/admin' : '/dashboard';
+      navigate(redirectPath);
+      
+      return userData;
     } catch (err) {
-      localStorage.removeItem('token');
       setError(err.response?.data?.message || err.message || 'Login failed');
-      console.error('❌ Login failed:', err); // 👈 Log error
       throw err;
     } finally {
       setLoading(false);
     }
   };
-  
 
-  // Register
+  // Register function
   const register = async (username, email, password) => {
     setLoading(true);
-    setError(null);
     try {
-      const { user: userData, token } = await authRegister(username, email, password);
+      const response = await authRegister(username, email, password);
+      const { token, ...userData } = response;
+
       localStorage.setItem('token', token);
       setUser(userData);
       navigate('/dashboard');
+      
+      return userData;
     } catch (err) {
-      setError(err.message || 'Registration failed');
+      setError(err.response?.data?.message || err.message || 'Registration failed');
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  // Logout
+  // Logout function
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
-
-    // If currently on admin route, redirect to home
-    if (location.pathname.startsWith('/admin')) {
-      navigate('/');
-    } else {
-      navigate('/login');
-    }
+    navigate('/login');
   };
 
   return (
@@ -107,11 +92,11 @@ export const AuthProvider = ({ children }) => {
         user,
         loading,
         error,
-        login,
-        register,
-        logout,
         isAuthenticated: !!user,
         isAdmin: user?.isAdmin || false,
+        login,
+        register,
+        logout
       }}
     >
       {children}
@@ -122,7 +107,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    console.warn('⚠️ useAuth was called outside of AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
