@@ -33,11 +33,11 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+ 
     const user = await User.create({
       username,
       email,
-      password: hashedPassword,
+      password, 
       isAdmin: false,
     });
 
@@ -52,6 +52,7 @@ const registerUser = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
 
 // Login user
 const loginUser = async (req, res, next) => {
