@@ -1,4 +1,5 @@
 //server/controllers/adminController.js
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const QRCode = require('../models/QRCode');
 
@@ -32,6 +33,11 @@ const updateUser = async (req, res) => {
 
     user.username = username || user.username;
     user.email = email || user.email;
+     // Update password if provided
+     if (password) {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+    }
     await user.save();
 
     res.json({ 

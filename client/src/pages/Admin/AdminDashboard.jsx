@@ -59,7 +59,8 @@ const AdminDashboard = () => {
     setSelectedUser(user);
     setUpdatedUserData({
       username: user.username,
-      email: user.email
+      email: user.email,
+      password: ''
     });
     setShowEditModal(true);
   };
@@ -67,6 +68,8 @@ const AdminDashboard = () => {
   const handleUserUpdate = async () => {
     try {
       setIsUpdating(true);
+      const payload = { username: updatedUserData.username, email: updatedUserData.email };
+      if (updatedUserData.password) payload.password = updatedUserData.password;
       await axios.put(`${API}/admin/users/${selectedUser._id}`, updatedUserData);
       setShowEditModal(false);
       await fetchDashboardData();
@@ -75,6 +78,18 @@ const AdminDashboard = () => {
       setError(err.response?.data?.message || 'Failed to update user');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  // Delete user handler
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    try {
+      await axios.delete(`${API}/admin/users/${userId}`);
+      await fetchDashboardData();
+    } catch (err) {
+      console.error('Failed to delete user:', err);
+      setError(err.response?.data?.message || 'Failed to delete user');
     }
   };
 
@@ -169,7 +184,7 @@ const AdminDashboard = () => {
                       <button onClick={() => openEditModal(user)} className="text-blue-600 hover:text-blue-800">
                         <PencilIcon className="h-5 w-5 inline" />
                       </button>
-                      <button className="text-red-600 hover:text-red-800">
+                      <button onClick={() => handleDeleteUser(user._id)} className="text-red-600 hover:text-red-800">
                         <TrashIcon className="h-5 w-5 inline" />
                       </button>
                     </td>
@@ -204,11 +219,17 @@ const AdminDashboard = () => {
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Password (leave blank to keep current)</label>
+              <input
+                type="password"
+                value={updatedUserData.password}
+                onChange={e => setUpdatedUserData({ ...updatedUserData, password: e.target.value })}
+                className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+              />
+            </div>
             <div className="flex justify-end gap-3">
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 text-sm bg-gray-200 rounded hover:bg-gray-300"
-              >
+              <button onClick={closeModal} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
                 Cancel
               </button>
               <button
