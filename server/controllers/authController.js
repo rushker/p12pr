@@ -27,25 +27,30 @@ const registerUser = async (req, res) => {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
-  const userExists = await User.findOne({ email });
-  if (userExists) {
-    return res.status(400).json({ message: 'Email already registered' });
+  try {
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: 'Email already registered' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      username,
+      email,
+      password: hashedPassword,
+      isAdmin: false,
+    });
+
+    return res.status(201).json({
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      token: generateToken(user._id, user.isAdmin),
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const user = await User.create({
-    username,
-    email,
-    password: hashedPassword,
-  });
-
-  return res.status(201).json({
-    _id: user._id,
-    username: user.username,
-    email: user.email,
-    isAdmin: user.isAdmin,
-    token: generateToken(user._id, user.isAdmin),
-  });
 };
 
 // Login user
@@ -53,31 +58,34 @@ const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
-    const admin = admins.find(admin => admin.email === email && admin.password === password);
+    // 1. Check admin accounts first
+    const admin = admins.find((a) => a.email === email);
     if (admin) {
-      return res.json({
-        _id: 'admin-id',
-        username: 'Admin',
-        email: admin.email,
-        isAdmin: true,
-        token: generateToken('admin-id', true),
-      });
-    }
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      console.log('❌ Email not found');
+      if (admin.password === password) {
+        return res.json({
+          _id: 'admin-id',
+          username: 'Admin',
+          email: admin.email,
+          isAdmin: true,
+          token: generateToken('admin-id', true),
+        });
+      }
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    // 2. Check regular users
+    const user = await User.findOne({ email }).select('+password');
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // 3. Compare password using bcrypt
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      console.log('❌ Password does not match');
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    console.log('✅ User logged in successfully');
-
+    // 4. Generate token and return user info
     res.json({
       _id: user._id,
       username: user.username,
@@ -91,8 +99,7 @@ const loginUser = async (req, res, next) => {
   }
 };
 
-
-// Get current user
+// Get current logged-in user
 const getMe = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
