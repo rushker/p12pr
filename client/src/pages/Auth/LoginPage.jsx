@@ -5,8 +5,8 @@ import { LockClosedIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
 import { Link} from 'react-router-dom';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('admin@admin.com'); // Default for testing
-  const [password, setPassword] = useState('123456'); // Default for testing
+  const [email, setEmail] = useState(''); 
+  const [password, setPassword] = useState(''); 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
