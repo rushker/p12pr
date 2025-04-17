@@ -3,6 +3,11 @@ import axios from '../api/axiosConfig';
 
 export const login = async (email, password) => {
   const response = await axios.post('/auth/login', { email, password });
+  
+  if (response.status === 401) {
+    throw new Error('Invalid email or password');
+  }
+  
   return response.data; // Should return { _id, username, email, isAdmin, token }
 };
 

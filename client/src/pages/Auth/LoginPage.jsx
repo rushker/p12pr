@@ -20,9 +20,9 @@ const LoginPage = () => {
 
     try {
       await login(email, password);
-      // Navigation is handled in AuthContext after successful login
     } catch (err) {
-      setError(err.message || 'Login failed');
+      setError(err.response?.data?.message || 'Invalid email or password');
+    } finally {
       setLoading(false);
     }
   };
