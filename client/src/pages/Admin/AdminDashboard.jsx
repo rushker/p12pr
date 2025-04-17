@@ -32,9 +32,9 @@ const AdminDashboard = () => {
       setError(null);
 
       const [usersRes, qrRes, recentQRRes] = await Promise.all([
-        axios.get(`${API}/admin/users`),
-        axios.get(`${API}/admin/qr-codes/count`),
-        axios.get(`${API}/admin/qr-codes/recent`)
+        axios.get(`/admin/users`),
+        axios.get(`/admin/qr-codes/count`),
+        axios.get(`/admin/qr-codes/recent`)
       ]);
 
       setStats({
@@ -70,7 +70,7 @@ const AdminDashboard = () => {
       setIsUpdating(true);
       const payload = { username: updatedUserData.username, email: updatedUserData.email };
       if (updatedUserData.password) payload.password = updatedUserData.password;
-      await axios.put(`${API}/admin/users/${selectedUser._id}`, updatedUserData);
+      await axios.put(`/admin/users/${selectedUser._id}`, updatedUserData);
       setShowEditModal(false);
       await fetchDashboardData();
     } catch (err) {
@@ -89,7 +89,7 @@ const AdminDashboard = () => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
   
     try {
-      const resp = await axios.delete(`${API}/admin/users/${userId}`);
+      const resp = await axios.delete(`/admin/users/${userId}`);
       console.log('Delete successful:', resp.data);
       await fetchDashboardData();
     } catch (err) {
