@@ -5,27 +5,23 @@ const User = require('../models/User');
 const protect = async (req, res, next) => {
   let token;
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
-      token = req.headers.authorization.split(' ')[1];
+      token = req.headers.authorization.split(' ')[1]; // Extract token
+      console.log("Token received:", token); // Log the token for debugging
+
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log("Decoded JWT:", decoded); // Log decoded token for debugging
 
       const user = await User.findById(decoded.id).select('-password');
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
 
-      req.user = {
-        id: user._id,
-        isAdmin: user.isAdmin,
-      };
-
-      next(); 
+      req.user = user; // Attach user to the request
+      next();
     } catch (error) {
-      console.error('Token verification error:', error);
+      console.error('Token verification failed:', error);
       return res.status(401).json({ message: 'Not authorized, token failed' });
     }
   } else {
