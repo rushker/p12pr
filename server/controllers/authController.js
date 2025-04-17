@@ -1,3 +1,4 @@
+//controllers/authController.js
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
@@ -52,7 +53,6 @@ const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
-    // 🔍 Check admins.json first
     const admin = admins.find(admin => admin.email === email && admin.password === password);
     if (admin) {
       return res.json({
@@ -64,16 +64,19 @@ const loginUser = async (req, res, next) => {
       });
     }
 
-    // 👤 Otherwise, check MongoDB
     const user = await User.findOne({ email });
     if (!user) {
+      console.log('❌ Email not found');
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.log('❌ Password does not match');
       return res.status(401).json({ message: 'Invalid credentials' });
     }
+
+    console.log('✅ User logged in successfully');
 
     res.json({
       _id: user._id,
@@ -83,9 +86,11 @@ const loginUser = async (req, res, next) => {
       token: generateToken(user._id, user.isAdmin),
     });
   } catch (error) {
+    console.error('Login error:', error);
     next(error);
   }
 };
+
 
 // Get current user
 const getMe = async (req, res, next) => {
