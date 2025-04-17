@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import axios from '../../api/axiosConfig';
 import {
   UsersIcon,
   QrCodeIcon,
@@ -83,7 +83,7 @@ const AdminDashboard = () => {
     setSelectedUser(null);
     setUpdatedUserData({});
   };
-
+  
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
