@@ -93,6 +93,33 @@ const getTotalQRCodes = async (req, res) => {
   }
 };
 
+const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Optional: Delete user's QR codes
+    await QRCode.deleteMany({ user: user._id });
+
+    res.json({
+      success: true,
+      message: 'User deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete user'
+    });
+  }
+};
+
 module.exports = {
   getAllUsers,
   updateUser,
@@ -100,4 +127,5 @@ module.exports = {
   getRecentQRCodes,
   getTotalUsers,
   getTotalQRCodes,
+  deleteUser,
 };
