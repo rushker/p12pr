@@ -2,15 +2,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
-const fs = require('fs');
-const path = require('path');
 
-// Load admin data
-const adminsPath = path.resolve(__dirname, '../data/admins.json');
-let admins = [];
-if (fs.existsSync(adminsPath)) {
-  admins = JSON.parse(fs.readFileSync(adminsPath, 'utf-8'));
-}
 
 // Generate JWT token
 const generateToken = (id, isAdmin) => {
@@ -34,11 +26,13 @@ const registerUser = async (req, res) => {
     }
 
  
+    const isAdmin = email.endsWith('@admin.com');
+
     const user = await User.create({
       username,
       email,
-      password, 
-      isAdmin: false,
+      password,
+      isAdmin,
     });
 
     return res.status(201).json({
@@ -59,39 +53,21 @@ const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
-    // 1. Check admin accounts first
-    const admin = admins.find((a) => a.email === email);
-    if (admin) {
-      if (admin.password === password) {
-        return res.json({
-          _id: 'admin-id',
-          username: 'Admin',
-          email: admin.email,
-          isAdmin: true,
-          token: generateToken('admin-id', true),
-        });
-      }
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    // 2. Check regular users
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // 3. Compare password using bcrypt
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // 4. Generate token and return user info
     res.json({
       _id: user._id,
       username: user.username,
       email: user.email,
-      isAdmin: user.isAdmin,
+      isAdmin: user.isAdmin, 
       token: generateToken(user._id, user.isAdmin),
     });
   } catch (error) {
@@ -99,6 +75,7 @@ const loginUser = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // Get current logged-in user
 const getMe = async (req, res, next) => {

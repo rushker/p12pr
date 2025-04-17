@@ -10,24 +10,20 @@ const protect = async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     try {
-      // Get token from header
       token = req.headers.authorization.split(' ')[1];
-
-      // Verify token - handle both admin and regular users
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Special handling for admin user from admins.json
-      if (decoded.id === 'admin-id') {
-        req.user = {
-          id: 'admin-id',
-          isAdmin: true
-        };
-        return next();
+      const user = await User.findById(decoded.id).select('-password');
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
       }
 
-      // Get user from token, excluding password
-      req.user = await User.findById(decoded.id).select('-password');
-      next();
+      req.user = {
+        id: user._id,
+        isAdmin: user.isAdmin,
+      };
+
+      next(); 
     } catch (error) {
       console.error('Token verification error:', error);
       return res.status(401).json({ message: 'Not authorized, token failed' });
@@ -36,6 +32,7 @@ const protect = async (req, res, next) => {
     return res.status(401).json({ message: 'Not authorized, no token' });
   }
 };
+
 
 const admin = (req, res, next) => {
   if (req.user && req.user.isAdmin) {

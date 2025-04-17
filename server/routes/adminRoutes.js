@@ -1,4 +1,4 @@
-//server/routes/adminRoutes.js
+// server/routes/adminRoutes.js
 const express = require('express');
 const router = express.Router();
 const { getAllUsers, updateUser, getQRCodeStats, getRecentQRCodes } = require('../controllers/adminController');
