@@ -10,8 +10,7 @@ import {
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 
-const API = process.env.REACT_APP_API_BASE_URL;
-
+console.log('🤖 axios baseURL =', axios.defaults.baseURL);
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -84,7 +83,7 @@ const AdminDashboard = () => {
   // Delete user handler
   const handleDeleteUser = async (userId) => {
     console.log('Attempting to delete user with ID:', userId);
-    console.log(`DELETE URL: ${API}/admin/users/${userId}`);
+    console.log('🤖 about to DELETE →', axios.defaults.baseURL + `/admin/users/${userId}`);
   
     if (!window.confirm('Are you sure you want to delete this user?')) return;
   
