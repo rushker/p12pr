@@ -15,17 +15,47 @@ const getAllUsers = async (req, res) => {
 
 // PUT /admin/users/:id
 const updateUser = async (req, res) => {
-  const { id } = req.params;
-  const { name, email } = req.body;
+  try {
+    const { id } = req.params;
+    const { username, email } = req.body;
 
-  const user = await User.findById(id);
-  if (!user) return res.status(404).json({ message: 'User not found' });
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
-  user.name = name || user.name;
-  user.email = email || user.email;
-  await user.save();
+    // Check if email already exists
+    if (email && email !== user.email) {
+      const emailExists = await User.findOne({ email });
+      if (emailExists) {
+        return res.status(400).json({ message: 'Email already in use' });
+      }
+    }
 
-  res.json({ message: 'User updated successfully' });
+    user.username = username || user.username;
+    user.email = email || user.email;
+    await user.save();
+
+    res.json({ 
+      message: 'User updated successfully',
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        isAdmin: user.isAdmin
+      }
+    });
+  } catch (error) {
+    console.error('Update user error:', error);
+    res.status(500).json({ message: 'Error updating user' });
+  }
+};
+const getTotalUsers = async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments({});
+    res.json({ totalUsers });
+  } catch (error) {
+    console.error('Error fetching user count:', error);
+    res.status(500).json({ message: 'Failed to fetch user count' });
+  }
 };
 
 // GET /admin/qr-codes/count
@@ -53,10 +83,21 @@ const getRecentQRCodes = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+const getTotalQRCodes = async (req, res) => {
+  try {
+    const totalQRCodes = await QRCode.countDocuments();
+    res.json({ totalQRCodes });
+  } catch (error) {
+    console.error('Error fetching QR code count:', error);
+    res.status(500).json({ message: 'Failed to fetch QR count' });
+  }
+};
 
 module.exports = {
   getAllUsers,
   updateUser,
   getQRCodeStats,
   getRecentQRCodes,
+  getTotalUsers,
+  getTotalQRCodes,
 };
