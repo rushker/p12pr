@@ -83,15 +83,31 @@ const AdminDashboard = () => {
 
   // Delete user handler
   const handleDeleteUser = async (userId) => {
+    console.log('Attempting to delete user with ID:', userId);
+    console.log(`DELETE URL: ${API}/admin/users/${userId}`);
+  
     if (!window.confirm('Are you sure you want to delete this user?')) return;
+  
     try {
-      await axios.delete(`${API}/admin/users/${userId}`);
+      const resp = await axios.delete(`${API}/admin/users/${userId}`);
+      console.log('Delete successful:', resp.data);
       await fetchDashboardData();
     } catch (err) {
-      console.error('Failed to delete user:', err);
-      setError(err.response?.data?.message || 'Failed to delete user');
+      // More detailed logging:
+      console.error('Axios error object:', err);
+      if (err.response) {
+        console.error('→ Status:', err.response.status);
+        console.error('→ Body:', err.response.data);
+        setError(
+          err.response.data.message ||
+          `Failed to delete user (status ${err.response.status})`
+        );
+      } else {
+        setError(err.message);
+      }
     }
   };
+  
 
   const closeModal = () => {
     setShowEditModal(false);

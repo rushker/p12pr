@@ -33,7 +33,8 @@ const updateUser = async (req, res) => {
 
     user.username = username || user.username;
     user.email = email || user.email;
-     // Update password if provided
+     
+    // Update password if provided
      if (password) {
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(password, salt);
@@ -54,6 +55,34 @@ const updateUser = async (req, res) => {
     res.status(500).json({ message: 'Error updating user' });
   }
 };
+
+const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Optional: Delete user's QR codes
+    await QRCode.deleteMany({ user: user._id });
+
+    res.json({
+      success: true,
+      message: 'User deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete user'
+    });
+  }
+};
+
 const getTotalUsers = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments({});
@@ -99,32 +128,7 @@ const getTotalQRCodes = async (req, res) => {
   }
 };
 
-const deleteUser = async (req, res) => {
-  try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
 
-    // Optional: Delete user's QR codes
-    await QRCode.deleteMany({ user: user._id });
-
-    res.json({
-      success: true,
-      message: 'User deleted successfully'
-    });
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to delete user'
-    });
-  }
-};
 
 module.exports = {
   getAllUsers,
