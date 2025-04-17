@@ -118,6 +118,7 @@ const getRecentQRCodes = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
 const getTotalQRCodes = async (req, res) => {
   try {
     const totalQRCodes = await QRCode.countDocuments();
@@ -127,8 +128,6 @@ const getTotalQRCodes = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch QR count' });
   }
 };
-
-
 
 module.exports = {
   getAllUsers,
