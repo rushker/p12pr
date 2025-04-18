@@ -58,6 +58,14 @@ app.use((req, res, next) => {
 
 // API routes
 app.use('/api', require('./routes'));
+const listEndpoints = require('express-list-endpoints');
+console.log('🗺️ Registered API endpoints:\n',
+  listEndpoints(app)
+    .filter(r => r.path.startsWith('/api'))
+    .map(r => `${r.methods.join(',')}  ${r.path}`)
+    .join('\n')
+);
+
 
 // Safe catch-all for unknown API routes
 app.use((req, res, next) => {
