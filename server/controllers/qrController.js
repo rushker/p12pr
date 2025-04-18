@@ -1,9 +1,9 @@
 // server/controllers/qrController.js
 const QRCode = require('../models/QRCode');
-const User = require('../models/User');
 const cloudinary = require('cloudinary').v2;
 const QRCodeGenerator = require('qrcode');
 const { v4: uuidv4 } = require('uuid');
+const fs = require('fs');
 
 // Generate QR code
 const generateQRCode = async (req, res, next) => {
@@ -19,8 +19,6 @@ const generateQRCode = async (req, res, next) => {
       folder: 'qr-code-images',
       public_id: `${uuidv4()}`,
       resource_type: 'auto',
-    }).catch(err => {
-      throw new Error(`Cloudinary upload failed: ${err.message}`);
     });
 
     // Generate QR code for the image URL
@@ -36,7 +34,6 @@ const generateQRCode = async (req, res, next) => {
       description,
     });
 
-    // Populate user data
     await qrCode.populate('user', 'username email');
 
     res.status(201).json(qrCode);
@@ -63,7 +60,7 @@ const getUserQRCodes = async (req, res, next) => {
 const getQRCodeById = async (req, res, next) => {
   try {
     const qrCode = await QRCode.findById(req.params.id).populate('user', 'username email');
-    
+
     if (!qrCode) {
       return res.status(404).json({ message: 'QR code not found' });
     }
@@ -77,45 +74,47 @@ const getQRCodeById = async (req, res, next) => {
 // Delete QR code
 const deleteQRCode = async (req, res) => {
   try {
-    console.log('🗑️ deleteQRCode called for ID:', req.params.id, 'User:', req.user.id, 'isAdmin:', req.user.isAdmin);
     const qr = await QRCode.findById(req.params.id);
-    console.log('🗑️ Found QR:', qr);
+
     if (!qr) {
+      console.log('QR not found for ID:', req.params.id);
       return res.status(404).json({ message: 'QR code not found' });
     }
 
-    // Defensive check before calling
-    if (!qr.user || (qr.user.toString() !== req.user.id && !req.user.isAdmin)) {
-      return res.status(403).json({ message: 'Not authorized to delete this QR code' });
-    }
-    
-    // Ensure only owner or admin can delete
-    if (qr.user.toString() !== req.user.id && !req.user.isAdmin) {
+    console.log('QR fetched:', qr);
+    console.log('Requesting user:', req.user);
+
+    const qrUserId = qr.user.toString();
+    const requesterId = req.user.id;
+
+    if (qrUserId !== requesterId && !req.user.isAdmin) {
+      console.log('Not authorized to delete this QR code:', {
+        qrUser: qrUserId,
+        reqUserId: requesterId,
+        isAdmin: req.user.isAdmin,
+      });
       return res.status(403).json({ message: 'Not authorized to delete this QR code' });
     }
 
-    // Optionally skip Cloudinary delete to isolate error
+    // Delete image from Cloudinary
     if (qr.publicId) {
       try {
-        console.log('🗑️ Destroying Cloudinary publicId:', qr.publicId);
-        await cloudinary.uploader.destroy(qr.publicId);
-        console.log('🗑️ Cloudinary image deleted');
+        const cloudRes = await cloudinary.uploader.destroy(qr.publicId);
+        console.log('Cloudinary delete result:', cloudRes);
       } catch (err) {
-        console.error('Error deleting image from Cloudinary (continuing):', err);
+        console.error('Error deleting from Cloudinary:', err.message);
       }
     }
 
-    // Remove QR code document
-    await qr.remove();
-    console.log('🗑️ QR document removed');
+    // Delete from MongoDB
+    await qr.deleteOne();
 
     return res.json({ message: 'QR code deleted successfully' });
   } catch (error) {
-    console.error('Error deleting QR code:', error);
+    console.error('Server error in deleteQRCode:', error);
     return res.status(500).json({ message: 'Internal server error while deleting QR code' });
   }
 };
-
 
 module.exports = {
   generateQRCode,
