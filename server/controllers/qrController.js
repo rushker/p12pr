@@ -84,6 +84,11 @@ const deleteQRCode = async (req, res) => {
       return res.status(404).json({ message: 'QR code not found' });
     }
 
+    // Defensive check before calling
+    if (!qr.user || (qr.user.toString() !== req.user.id && !req.user.isAdmin)) {
+      return res.status(403).json({ message: 'Not authorized to delete this QR code' });
+    }
+    
     // Ensure only owner or admin can delete
     if (qr.user.toString() !== req.user.id && !req.user.isAdmin) {
       return res.status(403).json({ message: 'Not authorized to delete this QR code' });
