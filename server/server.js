@@ -6,6 +6,7 @@ const fs = require('fs');
 const connectDB = require('./config/db');
 const configureCloudinary = require('./config/cloudinary');
 const { errorHandler } = require('./middleware/error');
+const listEndpoints = require('express-list-endpoints');
 
 // Initialize Express app
 const app = express();
@@ -58,7 +59,6 @@ app.use((req, res, next) => {
 
 // API routes
 app.use('/api', require('./routes'));
-const listEndpoints = require('express-list-endpoints');
 console.log('🗺️ Registered API endpoints:\n',
   listEndpoints(app)
     .filter(r => r.path.startsWith('/api'))
