@@ -1,8 +1,16 @@
 // components/admin/EditUserModal.jsx
 import React from 'react';
 
-const EditUserModal = ({ user, data, setData, onClose, onSave, isUpdating }) => {
+const EditUserModal = ({
+  user,
+  updatedUserData,
+  setUpdatedUserData,
+  onClose,
+  onSave,
+  isUpdating
+}) => {
   if (!user) return null;
+
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 space-y-4">
@@ -12,8 +20,8 @@ const EditUserModal = ({ user, data, setData, onClose, onSave, isUpdating }) => 
           <label className="block text-sm font-medium text-gray-700">Username</label>
           <input
             type="text"
-            value={data.username}
-            onChange={e => setData({ ...data, username: e.target.value })}
+            value={updatedUserData.username || ''}
+            onChange={e => setUpdatedUserData({ ...updatedUserData, username: e.target.value })}
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
           />
         </div>
@@ -22,8 +30,8 @@ const EditUserModal = ({ user, data, setData, onClose, onSave, isUpdating }) => 
           <label className="block text-sm font-medium text-gray-700">Email</label>
           <input
             type="email"
-            value={data.email}
-            onChange={e => setData({ ...data, email: e.target.value })}
+            value={updatedUserData.email || ''}
+            onChange={e => setUpdatedUserData({ ...updatedUserData, email: e.target.value })}
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
           />
         </div>
@@ -34,8 +42,8 @@ const EditUserModal = ({ user, data, setData, onClose, onSave, isUpdating }) => 
           </label>
           <input
             type="password"
-            value={data.password}
-            onChange={e => setData({ ...data, password: e.target.value })}
+            value={updatedUserData.password || ''}
+            onChange={e => setUpdatedUserData({ ...updatedUserData, password: e.target.value })}
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
           />
         </div>
@@ -64,4 +72,3 @@ const EditUserModal = ({ user, data, setData, onClose, onSave, isUpdating }) => 
 };
 
 export default EditUserModal;
-

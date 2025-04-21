@@ -1,8 +1,17 @@
 // components/admin/EditQRModal.jsx
 import React from 'react';
 
-const EditQRModal = ({ qr, data, setData, onClose, onSave, isUpdating }) => {
+const EditQRModal = ({
+  qr,
+  updatedQRData,
+  setUpdatedQRData,
+  onClose,
+  onSave,
+  isUpdating
+}) => {
+  // Don’t render anything if there’s no QR selected
   if (!qr) return null;
+
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 space-y-4">
@@ -12,8 +21,8 @@ const EditQRModal = ({ qr, data, setData, onClose, onSave, isUpdating }) => {
           <label className="block text-sm font-medium text-gray-700">Title</label>
           <input
             type="text"
-            value={data.title}
-            onChange={e => setData({ ...data, title: e.target.value })}
+            value={updatedQRData.title || ''}
+            onChange={e => setUpdatedQRData({ ...updatedQRData, title: e.target.value })}
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
           />
         </div>
@@ -21,8 +30,8 @@ const EditQRModal = ({ qr, data, setData, onClose, onSave, isUpdating }) => {
         <div>
           <label className="block text-sm font-medium text-gray-700">Description</label>
           <textarea
-            value={data.description}
-            onChange={e => setData({ ...data, description: e.target.value })}
+            value={updatedQRData.description || ''}
+            onChange={e => setUpdatedQRData({ ...updatedQRData, description: e.target.value })}
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
           />
         </div>
