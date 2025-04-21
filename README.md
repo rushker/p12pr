@@ -4,7 +4,7 @@ you can visit it at https://p12pr.vercel.app/
 *note:
 using noSQL database
 backend ( node.js + express)  hosting on https://p12pr.onrender.com
-frontend ( reacte + tailwind.css) hosting on https://p12pr.vercel.app/
+frontend ( react + tailwind.css) hosting on https://p12pr.vercel.app/
 
 function:
 1)
