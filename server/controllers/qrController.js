@@ -71,6 +71,35 @@ const getQRCodeById = async (req, res, next) => {
   }
 };
 
+// Update QR code
+const updateQRCode = async (req, res, next) => {
+  try {
+    const qrCode = await QRCode.findById(req.params.id);
+
+    if (!qrCode) {
+      return res.status(404).json({ message: 'QR code not found' });
+    }
+
+    // Check if the user is the owner or an admin
+    const isOwner = qrCode.user.toString() === req.user.id;
+    if (!isOwner && !req.user.isAdmin) {
+      return res.status(403).json({ message: 'Not authorized to update this QR code' });
+    }
+
+    const { title, description } = req.body;
+
+    if (title !== undefined) qrCode.title = title;
+    if (description !== undefined) qrCode.description = description;
+
+    await qrCode.save();
+    await qrCode.populate('user', 'username email');
+
+    res.json(qrCode);
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Delete QR code
 const deleteQRCode = async (req, res) => {
   try {
@@ -120,5 +149,6 @@ module.exports = {
   generateQRCode,
   getUserQRCodes,
   getQRCodeById,
+  updateQRCode,
   deleteQRCode,
 };

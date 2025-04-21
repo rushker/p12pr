@@ -72,7 +72,7 @@ const AdminDashboard = () => {
       setIsUpdating(true);
       await axios.put(`/admin/users/${selectedUser._id}`, updatedUserData);
       setShowEditUserModal(false);
-      fetchDashboardData();
+      await fetchDashboardData();
     } catch (err) {
       console.error('Failed to update user:', err);
       setError(err.response?.data?.message || 'Failed to update user');
@@ -93,7 +93,7 @@ const AdminDashboard = () => {
       setIsUpdating(true);
       await axios.put(`/admin/qr-codes/${selectedQR._id}`, updatedQRData);
       setShowEditQRModal(false);
-      fetchDashboardData();
+      await fetchDashboardData();
     } catch (err) {
       console.error('Failed to update QR code:', err);
       setError(err.response?.data?.message || 'Failed to update QR code');
@@ -107,7 +107,7 @@ const AdminDashboard = () => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
       await axios.delete(`/admin/users/${userId}`);
-      fetchDashboardData();
+      await fetchDashboardData();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete user');
     }
@@ -118,7 +118,7 @@ const AdminDashboard = () => {
     if (!window.confirm('Are you sure you want to delete this QR code?')) return;
     try {
       await axios.delete(`/admin/qr-codes/${qrId}`);
-      fetchDashboardData();
+      await fetchDashboardData();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete QR code');
     }
@@ -188,23 +188,23 @@ const AdminDashboard = () => {
       {/* Edit Modals */}
       {showEditUserModal && (
         <EditUserModal
-          user={selectedUser}
-          updatedUserData={updatedUserData}
-          setUpdatedUserData={setUpdatedUserData}
-          onClose={closeModal}
-          onSave={handleUserUpdate}
-          isUpdating={isUpdating}
+        user={selectedUser}
+        updatedUserData={updatedUserData}
+        setUpdatedUserData={setUpdatedUserData}
+        onClose={closeModal}
+        onSave={handleUserUpdate}
+        isUpdating={isUpdating} 
         />
       )}
 
       {showEditQRModal && (
         <EditQRModal
-          qr={selectedQR}
-          updatedQRData={updatedQRData}
-          setUpdatedQRData={setUpdatedQRData}
-          onClose={closeModal}
-          onSave={handleQRUpdate}
-          isUpdating={isUpdating}
+        qr={selectedQR}
+        updatedQRData={updatedQRData}
+        setUpdatedQRData={setUpdatedQRData}
+        onClose={closeModal}
+        onSave={handleQRUpdate}
+        isUpdating={isUpdating}
         />
       )}
     </div>
