@@ -100,55 +100,11 @@ const updateQRCode = async (req, res, next) => {
   }
 };
 
-// Delete QR code
-const deleteQRCode = async (req, res) => {
-  try {
-    const qr = await QRCode.findById(req.params.id);
 
-    if (!qr) {
-      console.log('QR not found for ID:', req.params.id);
-      return res.status(404).json({ message: 'QR code not found' });
-    }
-
-    console.log('QR fetched:', qr);
-    console.log('Requesting user:', req.user);
-
-    const qrUserId = qr.user.toString();
-    const requesterId = req.user.id;
-
-    if (qrUserId !== requesterId && !req.user.isAdmin) {
-      console.log('Not authorized to delete this QR code:', {
-        qrUser: qrUserId,
-        reqUserId: requesterId,
-        isAdmin: req.user.isAdmin,
-      });
-      return res.status(403).json({ message: 'Not authorized to delete this QR code' });
-    }
-
-    // Delete image from Cloudinary
-    if (qr.publicId) {
-      try {
-        const cloudRes = await cloudinary.uploader.destroy(qr.publicId);
-        console.log('Cloudinary delete result:', cloudRes);
-      } catch (err) {
-        console.error('Error deleting from Cloudinary:', err.message);
-      }
-    }
-
-    // Delete from MongoDB
-    await qr.deleteOne();
-
-    return res.json({ message: 'QR code deleted successfully' });
-  } catch (error) {
-    console.error('Server error in deleteQRCode:', error);
-    return res.status(500).json({ message: 'Internal server error while deleting QR code' });
-  }
-};
 
 module.exports = {
   generateQRCode,
   getUserQRCodes,
   getQRCodeById,
   updateQRCode,
-  deleteQRCode,
 };

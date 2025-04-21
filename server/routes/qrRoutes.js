@@ -5,11 +5,10 @@ const {
   generateQRCode,
   getUserQRCodes,
   getQRCodeById,
-  deleteQRCode,
 } = require('../controllers/qrController');
 const { protect } = require('../middleware/auth');
 const upload = require('../middleware/upload');
-
+const { deleteQRCode } = require('../controllers/deleteController');
 router
   .route('/')
   .post(protect, upload.single('image'), generateQRCode)
