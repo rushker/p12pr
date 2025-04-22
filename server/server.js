@@ -22,7 +22,8 @@ const uploadDir = './uploads';
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
-
+//Notification
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }) => {
         isAdmin: user?.isAdmin || false,
         login,
         register,
-        logout
+        logout,
       }}
     >
       {children}

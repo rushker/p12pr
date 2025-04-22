@@ -1,6 +1,7 @@
 // src/components/common/Header.jsx
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import NotificationBell from './NotificationBell';
 import {
   HomeIcon,
   UserCircleIcon,
@@ -27,6 +28,7 @@ const { user, logout, isAuthenticated, isAdmin } = auth;
         <nav className="flex items-center space-x-6">
           {isAuthenticated ? (
             <>
+            <NotificationBell />
               {isAdmin && (
                 <Link
                   to="/admin"

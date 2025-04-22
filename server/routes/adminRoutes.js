@@ -1,6 +1,8 @@
-//routes/adminRoutes.js
+// routes/adminRoutes.js
 const express = require('express');
 const router = express.Router();
+
+const { protect, admin } = require('../middleware/auth');
 const {
   getAllUsers,
   updateUser,
@@ -9,22 +11,29 @@ const {
 } = require('../controllers/adminController');
 const { updateQRCode } = require('../controllers/qrController');
 const { deleteUser, deleteQRCode } = require('../controllers/deleteController');
-const { protect, admin } = require('../middleware/auth');
+const {
+  getAdminNotifications,
+  handleNotification,
+  deleteNotification
+} = require('../controllers/notificationController');
 
 // Admin-protected routes
+router.use(protect, admin);
 
-// GET all users - Admin only
-router.get('/users', protect, admin, getAllUsers);
-router.put('/users/:id', protect, admin, updateUser);
+// Notifications
+router.get('/notifications', getAdminNotifications);
+router.put('/notifications/:id', handleNotification);
+router.delete('/notifications/:id', deleteNotification);
 
-// DELETE a user and their QR codes - Admin only
-router.delete('/users/:id', protect, admin, deleteUser);
+// Users
+router.get('/users', getAllUsers);
+router.put('/users/:id', updateUser);
+router.delete('/users/:id', deleteUser);
 
-router.get('/qr-codes/count', protect, admin, getQRCodeStats);
-router.get('/qr-codes/recent', protect, admin, getRecentQRCodes);
-router.put('/qr-codes/:id', protect, admin, updateQRCode);
-
-// DELETE a QR code (owner or admin)
-router.delete('/qr-codes/:id', protect, admin, deleteQRCode);
+// QR Codes
+router.get('/qr-codes/count', getQRCodeStats);
+router.get('/qr-codes/recent', getRecentQRCodes);
+router.put('/qr-codes/:id', updateQRCode);
+router.delete('/qr-codes/:id', deleteQRCode);
 
 module.exports = router;

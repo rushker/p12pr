@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const generateResetToken = require('../utils/generateResetToken');
 const sendEmail = require('../utils/sendEmail');
-
+const Notification = require('../models/Notification')
 
 // Generate JWT token
 const generateToken = (id, isAdmin) => {
@@ -90,47 +90,74 @@ const getMe = async (req, res, next) => {
   }
 };
 // POST /api/auth/forgot-password
-const forgotPassword = async (req, res) => {
-  const { email } = req.body;
-  const user = await User.findOne({ email });
-  if (!user) return res.status(404).json({ message: 'No user with that email' });
+const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) 
+      return res.status(404).json({ message: 'No user with that email' });
 
-  const { resetToken, hashed, expire } = generateResetToken();
-  user.resetPasswordToken = hashed;
-  user.resetPasswordExpire = expire;
-  await user.save();
+    // 1) generate a resetToken, hash it & set expiry on user
+    const { resetToken, hashed, expire } = generateResetToken();
+    user.resetPasswordToken  = hashed;
+    user.resetPasswordExpire = expire;
+    await user.save();
 
-  // Build URL (frontend will need a ResetPassword page at this path)
-  const resetURL = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    // 2) build the URL for the client to consume
+    const resetURL = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
-  // “Send” (logs to console in dev)
-  await sendEmail({
-    to: user.email,
-    subject: 'Your password reset link',
-    text: `Click here to reset your password:\n\n${resetURL}\n\nThis link expires in 10 minutes.`,
-  });
+    // 3) send (or log) the email
+    await sendEmail({
+      to: user.email,
+      subject: 'Your password reset link',
+      text:   `Click here to reset your password:\n\n${resetURL}\n\nThis link expires in 10 minutes.`,
+    });
 
-  res.json({ message: 'Password reset link sent to email' });
+    // 4) create a Notification for admins
+    await Notification.create({
+      type:     'reset_request',
+      fromUser: user._id,
+      toRole:   'admin',
+      message:  `${user.email} requested a password reset.`,
+      link:     `/reset-password/${resetToken}`    // ← use resetToken, not "token"
+    });
+
+    console.log(`🛠️  RESET LINK → ${resetURL}`);
+    res.json({ message:'Password‑reset request queued; awaiting admin approval.' });
+  } catch (err) {
+    next(err);
+  }
 };
 
 // PUT /api/auth/reset-password/:token
-const resetPassword = async (req, res) => {
-  const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
-  const user = await User.findOne({
-    resetPasswordToken: hashedToken,
-    resetPasswordExpire: { $gt: Date.now() }
-  });
-  if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
+const resetPassword = async (req, res, next) => {
+  try {
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex');
 
-  const { password } = req.body;
-  if (!password) return res.status(400).json({ message: 'Password is required' });
+    const user = await User.findOne({
+      resetPasswordToken:  hashedToken,
+      resetPasswordExpire: { $gt: Date.now() }
+    });
+    if (!user) 
+      return res.status(400).json({ message: 'Invalid or expired token' });
 
-  user.password = password;                // will be hashed by your pre('save')
-  user.resetPasswordToken = undefined;
-  user.resetPasswordExpire = undefined;
-  await user.save();
+    const { password } = req.body;
+    if (!password) 
+      return res.status(400).json({ message: 'Password is required' });
 
-  res.json({ message: 'Password has been reset' });
+    // Save new password (pre-save hook will hash it)
+    user.password = password;
+    user.resetPasswordToken  = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    res.json({ message: 'Your password has been reset.' });
+  } catch (err) {
+    next(err);
+  }
 };
 
 module.exports = {
