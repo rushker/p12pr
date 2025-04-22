@@ -3,6 +3,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
+const http = require('http');
+const { Server } = require('socket.io');
 const connectDB = require('./config/db');
 const configureCloudinary = require('./config/cloudinary');
 const { errorHandler } = require('./middleware/error');
@@ -10,6 +12,39 @@ const listEndpoints = require('express-list-endpoints');
 
 // Initialize Express app
 const app = express();
+
+// Create HTTP server and Socket.IO instance
+const server = http.createServer(app);
+
+// Enhanced CORS setup with fallback
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+  : ['http://localhost:3000']; // Fallback for development
+
+const io = new Server(server, {
+  cors: {
+    origin: ALLOWED_ORIGINS,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+  }
+});
+
+// Attach Socket.IO instance to app
+app.set('io', io);
+
+// Socket.IO connection
+io.on('connection', (socket) => {
+  console.log('🟢 Socket connected:', socket.id);
+
+  socket.on('register', (userId) => {
+    console.log(`👤 User ${userId} registered for socket updates`);
+    socket.join(userId);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('🔴 Socket disconnected:', socket.id);
+  });
+});
 
 // Connect to MongoDB
 connectDB();
@@ -58,7 +93,9 @@ app.use((req, res, next) => {
 });
 
 //Notification
-app.use('/api/notifications', require('./routes/notificationRoutes'));
+const notificationRoutes = require('./routes/notificationRoutes')(io);
+app.use('/api/notifications', notificationRoutes);
+
 
 // API routes
 app.use('/api', require('./routes'));

@@ -1,18 +1,22 @@
-// server/routes/notificationRoutes.js
 const express = require('express');
 const { protect, admin } = require('../middleware/auth');
-const { 
-  getAdminNotifications, handleNotification,
-  getMyNotifications, deleteNotification
+const {
+  getAdminNotifications,
+  getMyNotifications,
+  deleteNotification,
+  handleNotification, // we'll use a wrapper to inject `io`
 } = require('../controllers/notificationController');
-const router = express.Router();
 
-// Admin inbox
-router.get('/admin', protect, admin, getAdminNotifications);
-router.put('/admin/:id', protect, admin, handleNotification);
+module.exports = (io) => {
+  const router = express.Router();
 
-// My (user) inbox
-router.get('/', protect, getMyNotifications);
-router.delete('/:id', protect, deleteNotification);
+  // Admin inbox
+  router.get('/admin', protect, admin, getAdminNotifications);
+  router.put('/admin/:id', protect, admin, handleNotification(io)); // inject io here
 
-module.exports = router;
+  // My (user) inbox
+  router.get('/', protect, getMyNotifications);
+  router.delete('/:id', protect, deleteNotification);
+
+  return router;
+};
