@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true,
+    unique: true, 
     trim: true,
     lowercase: true,
   },
@@ -30,6 +30,8 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
 });
 
 // Hash password before saving

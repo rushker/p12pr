@@ -1,7 +1,10 @@
-//controllers/authController.js
+// server/controllers/authController.js
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const User = require('../models/User');
+const generateResetToken = require('../utils/generateResetToken');
+const sendEmail = require('../utils/sendEmail');
 
 
 // Generate JWT token
@@ -86,9 +89,54 @@ const getMe = async (req, res, next) => {
     next(error);
   }
 };
+// POST /api/auth/forgot-password
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ message: 'No user with that email' });
+
+  const { resetToken, hashed, expire } = generateResetToken();
+  user.resetPasswordToken = hashed;
+  user.resetPasswordExpire = expire;
+  await user.save();
+
+  // Build URL (frontend will need a ResetPassword page at this path)
+  const resetURL = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+
+  // “Send” (logs to console in dev)
+  await sendEmail({
+    to: user.email,
+    subject: 'Your password reset link',
+    text: `Click here to reset your password:\n\n${resetURL}\n\nThis link expires in 10 minutes.`,
+  });
+
+  res.json({ message: 'Password reset link sent to email' });
+};
+
+// PUT /api/auth/reset-password/:token
+const resetPassword = async (req, res) => {
+  const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+  const user = await User.findOne({
+    resetPasswordToken: hashedToken,
+    resetPasswordExpire: { $gt: Date.now() }
+  });
+  if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
+
+  const { password } = req.body;
+  if (!password) return res.status(400).json({ message: 'Password is required' });
+
+  user.password = password;                // will be hashed by your pre('save')
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+  await user.save();
+
+  res.json({ message: 'Password has been reset' });
+};
 
 module.exports = {
   registerUser,
   loginUser,
   getMe,
+  forgotPassword,
+  resetPassword,
 };
