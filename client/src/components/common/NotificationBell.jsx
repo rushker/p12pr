@@ -4,6 +4,23 @@ import { useNotifications } from '../../hooks/useNotifications';
 import { useEffect, useState } from 'react';
 
 export default function NotificationBell() {
+    const handleAction = async (id, action) => {
+        try {
+          await fetch(`/notifications/admin/${id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+            body: JSON.stringify({ action }),
+          });
+          fetch(); // Refresh the list after action
+        } catch (err) {
+          console.error('❌ Error handling action:', err);
+        }
+      };
+      
+
   const { list, fetch, dismiss } = useNotifications();
   const [open, setOpen] = useState(false);
   useEffect(() => {
@@ -28,7 +45,20 @@ export default function NotificationBell() {
                 <div key={n._id} className="flex justify-between items-start p-3 border-b">
                   <div>
                     <div className="text-sm font-medium">{n.message}</div>
-                    <a href={n.link} className="text-xs text-indigo-600">Take Action</a>
+                    <div className="mt-2 flex space-x-2">
+                    <button
+                        onClick={() => handleAction(n._id, 'accepted')}
+                        className="bg-green-600 text-white text-xs px-3 py-1 rounded hover:bg-green-700"
+                    >
+                        ✅ Agree
+                    </button>
+                    <button
+                        onClick={() => handleAction(n._id, 'denied')}
+                        className="bg-red-600 text-white text-xs px-3 py-1 rounded hover:bg-red-700"
+                    >
+                        ❌ Deny
+                    </button>
+                    </div>
                   </div>
                   <button onClick={()=>dismiss(n._id)} className="ml-2">
                     <TrashIcon className="h-4 w-4 text-gray-400 hover:text-red-500"/>
