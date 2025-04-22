@@ -1,15 +1,20 @@
-a project qr code website of my 
-you can visit it at https://p12pr.vercel.app/
+A qr code project website
+🔗 Visit it here: https://p12pr.vercel.app
 
-*note:
-using noSQL database
-backend ( node.js + express)  hosting on https://p12pr.onrender.com
-frontend ( react + tailwind.css) hosting on https://p12pr.vercel.app/
+📦 Tech Stack:
+Frontend: React + Tailwind CSS (hosted on Vercel)
+Backend: Node.js + Express (hosted on Render: https://p12pr.onrender.com)
+Database: NoSQL (MongoDB)
 
-function:
-1)
-have 2 auth admin and user 
-using fake email to register ( admin - ...@admin.com ) & ( user - ... @user.com )
-2)
-qr code genarate function upload image => to qr code
+🔐 Authentication:
+Two types of users: Admin and User
+Fake email domains are used for registration:
+Admin: ...@admin.com
+User: ...@user.com
+
+🧩 Features:
+QR Code Generation:
+Users can upload an image.
+The system generates a QR code linked to the uploaded image.
+
 
