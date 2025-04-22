@@ -10,11 +10,11 @@ export const useNotifications = create(set => ({
     set({ loading:true });
     try {
       const { data } = await fetchMyNotifications();
-      set({ list:data });
+      set({ list: data });
     } catch(e) {
-      set({ error:e.message });
+      set({ error: e.message });
     } finally {
-      set({ loading:false });
+      set({ loading: false });
     }
   },
   dismiss: async (id) => {

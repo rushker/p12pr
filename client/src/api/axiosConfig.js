@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const axiosInstance = axios.create({
   baseURL: process.env.REACT_APP_API_BASE_URL,
-  withCredentials: false, // keep false unless your API explicitly uses cookies
+  withCredentials: true, // keep false unless your API explicitly uses cookies; Set to true if your API uses cookies for authentication
 });
 
 // 🔐 Request interceptor to add token

@@ -22,8 +22,7 @@ const uploadDir = './uploads';
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
-//Notification
-app.use('/api/notifications', require('./routes/notificationRoutes'));
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -57,6 +56,9 @@ app.use((req, res, next) => {
   res.header('X-XSS-Protection', '1; mode=block');
   next();
 });
+
+//Notification
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 
 // API routes
 app.use('/api', require('./routes'));
