@@ -1,50 +1,53 @@
 // server/controllers/qrController.js
-const QRCode = require('../models/QRCode');
-const cloudinary = require('cloudinary').v2;
-const QRCodeGenerator = require('qrcode');
+const QRCode       = require('../models/QRCode');
+const cloudinary   = require('cloudinary').v2;
+const QRCodeGen    = require('qrcode');
 const { v4: uuidv4 } = require('uuid');
-const fs = require('fs');
+const streamifier  = require('streamifier');
 
 // Generate QR code
 const generateQRCode = async (req, res, next) => {
   const { title, description } = req.body;
-  
   if (!req.file) {
     return res.status(400).json({ message: 'Please upload an image' });
   }
 
   try {
-    // Upload image to Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'qr-code-images',
-      public_id: `${uuidv4()}`,
-      resource_type: 'auto',
+    // 1) stream buffer into Cloudinary
+    const uploadResult = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'qr-code-images',
+          public_id: uuidv4(),
+          resource_type: 'auto',
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
     });
 
-    // Generate QR code for the image URL
-    const qrCodeDataUrl = await QRCodeGenerator.toDataURL(result.secure_url);
+    // 2) generate QR code (data URL) pointing at that image
+    const qrCodeDataUrl = await QRCodeGen.toDataURL(uploadResult.secure_url);
 
-    // Save to database
+    // 3) persist
     const qrCode = await QRCode.create({
-      user: req.user.id,
-      imageUrl: result.secure_url,
-      qrCodeUrl: qrCodeDataUrl,
-      publicId: result.public_id,
+      user:       req.user.id,
+      imageUrl:   uploadResult.secure_url,
+      qrCodeUrl:  qrCodeDataUrl,
+      publicId:   uploadResult.public_id,
       title,
       description,
     });
-
     await qrCode.populate('user', 'username email');
 
     res.status(201).json(qrCode);
   } catch (error) {
-    // Clean up uploaded file if error occurs
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
     next(error);
   }
-};
+};  
 
 // Get all QR codes for a user
 const getUserQRCodes = async (req, res, next) => {
