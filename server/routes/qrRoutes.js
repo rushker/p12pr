@@ -19,7 +19,7 @@ router
   .get(protect, getUserQRCodes);
 
 // Generate link-based QR code
-router.post('/link', protect, generateLinkQRCode);
+router.post('/link', generateLinkQRCode);
 
 // Public redirect for link-based QR code
 router.get('/redirect/:id', redirectQRCode);

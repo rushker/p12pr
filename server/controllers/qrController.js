@@ -52,7 +52,7 @@ const generateLinkQRCode = async (req, res, next) => {
   }
 
   try {
-    const qrCodeDataUrl = await QRCodeGen.toDataURL(link);
+    const qrCodeDataUrl = await QRCodeGen.toDataURL(`${process.env.BASE_URL}/api/qr/redirect/${qr._id}`);
 
     const qr = await QRCode.create({
       user: req.user.id,
@@ -94,16 +94,19 @@ const getQRCodeById = async (req, res, next) => {
   }
 };
 
-// Redirect to original URL for link-based QR codes
+// PUBLIC: Redirect to the original link
 const redirectQRCode = async (req, res, next) => {
   try {
     const qr = await QRCode.findById(req.params.id);
+
     if (!qr || !qr.originalUrl) {
-      return res.status(404).send('QR code not found or not a redirect QR');
+      return res.status(404).json({ message: 'QR code or original link not found' });
     }
+
+    // Redirect directly to the original URL (e.g., YouTube)
     res.redirect(qr.originalUrl);
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    next(error);
   }
 };
 
