@@ -1,19 +1,16 @@
 // server.js
 require('dotenv').config();
 const express = require('express');
-const http = require('http');
+
 const cors = require('cors');
-const { Server } = require('socket.io');
+
 const connectDB = require('./config/db');
 const configureCloudinary = require('./config/cloudinary');
 const { errorHandler } = require('./middleware/error');
 const listEndpoints = require('express-list-endpoints');
-const notificationController = require('./controllers/notificationController');
-
-// Create Express + HTTP server
 const app = express();
-const server = http.createServer(app);
-  
+
+
 // Connect to DB and configure Cloudinary
 connectDB();
 configureCloudinary();
@@ -51,36 +48,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Initialize Socket.IO
-const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins,
-    methods: ['GET', 'POST'],
-    credentials: true
-  }
-});
-
-// Inject Socket.IO instance into controller
-notificationController.initialize(io);
-
-// Socket.IO events
-io.on('connection', (socket) => {
-  console.log(`🔌 Socket connected: ${socket.id}`);
-
-  socket.on('join-room', (userId) => {
-    if (userId) {
-      socket.join(userId);
-      console.log(`👤 User ${userId} joined their room.`);
-    }
-  });
-
-  socket.on('disconnect', () => {
-    console.log(`❌ Socket disconnected: ${socket.id}`);
-  });
-});
 
 // Routes
-app.use('/api/notifications', require('./routes/notificationRoutes')(io));
 app.use('/api', require('./routes'));
 
 // Log registered endpoints
@@ -104,7 +73,7 @@ app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
   console.log(`🌐 Allowed origins: ${allowedOrigins.join(', ')}`);
   console.log(`🛡️  Environment: ${process.env.NODE_ENV || 'development'}`);

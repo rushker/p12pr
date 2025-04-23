@@ -1,7 +1,6 @@
-// src/components/common/Header.jsx
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import NotificationBell from './NotificationBell';
+
 import {
   HomeIcon,
   UserCircleIcon,
@@ -13,22 +12,21 @@ import {
 const Header = () => {
   const auth = useAuth();
 
-if (!auth) return null; // Or show a fallback/error UI
+  if (!auth) return null;
 
-const { user, logout, isAuthenticated, isAdmin } = auth;
+  const { user, logout, isAuthenticated, isAdmin } = auth;
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition">
           <QrCodeIcon className="h-8 w-8 text-indigo-600" />
-          <span className="text-xl font-bold text-gray-800">QRShare</span>
+          <span className="text-xl font-bold text-gray-800">P12Pr</span>
         </Link>
 
         <nav className="flex items-center space-x-6">
           {isAuthenticated ? (
             <>
-            <NotificationBell />
               {isAdmin && (
                 <Link
                   to="/admin"

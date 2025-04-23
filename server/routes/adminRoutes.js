@@ -11,19 +11,9 @@ const {
 } = require('../controllers/adminController');
 const { updateQRCode } = require('../controllers/qrController');
 const { deleteUser, deleteQRCode } = require('../controllers/deleteController');
-const {
-  getAdminNotifications,
-  handleNotification,
-  deleteNotification
-} = require('../controllers/notificationController');
 
 // Admin-protected routes
 router.use(protect, admin);
-
-// Notifications
-router.get('/notifications', getAdminNotifications);
-router.put('/notifications/:id', handleNotification);
-router.delete('/notifications/:id', deleteNotification);
 
 // Users
 router.get('/users', getAllUsers);

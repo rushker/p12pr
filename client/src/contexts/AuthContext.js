@@ -2,7 +2,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login as authLogin, register as authRegister, getMe } from '../services/authService';
-import { initializeSocket, getSocket } from '../utils/socket';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -18,7 +17,7 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (!token) return setLoading(false);
 
-      initializeSocket(token);
+     
       try {
         const me = await getMe();
         setUser(me);
@@ -38,7 +37,6 @@ export const AuthProvider = ({ children }) => {
     try {
       const { token, ...userData } = await authLogin(email, password);
       localStorage.setItem('token', token);
-      initializeSocket(token);
       setUser(userData);
       navigate(userData.isAdmin ? '/admin' : '/dashboard');
       return userData;
@@ -56,7 +54,6 @@ export const AuthProvider = ({ children }) => {
     try {
       const { token, ...userData } = await authRegister(...args);
       localStorage.setItem('token', token);
-      initializeSocket(token);
       setUser(userData);
       navigate('/dashboard');
       return userData;
@@ -67,8 +64,7 @@ export const AuthProvider = ({ children }) => {
 
   // Logout function
   const logout = () => {
-    const sock = getSocket();
-    if (sock) sock.disconnect();
+   
     localStorage.removeItem('token');
     setUser(null);
     navigate('/login');
