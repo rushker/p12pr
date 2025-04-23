@@ -11,7 +11,7 @@ const { deleteQRCode } = require('../controllers/deleteController');
 const { protect } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
-// Public redirect for link-based QR code
+
 router.get('/redirect/:id', redirectQRCode);
 
 // Protected routes for image-based and link-based QR codes

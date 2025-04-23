@@ -95,18 +95,26 @@ const getQRCodeById = async (req, res, next) => {
 };
 
 // PUBLIC: Redirect to the original link
-const redirectQRCode = async (req, res, next) => {
+const redirectQRCode = async (req, res) => {
   try {
+    console.log('🔍 Redirect route hit');
     const qr = await QRCode.findById(req.params.id);
 
-    if (!qr || !qr.originalUrl) {
-      return res.status(404).json({ message: 'QR code or original link not found' });
+    if (!qr) {
+      console.log('❌ QR not found');
+      return res.status(404).send('QR code not found');
     }
 
-    // Redirect directly to the original URL (e.g., YouTube)
-    res.redirect(qr.originalUrl);
-  } catch (error) {
-    next(error);
+    if (qr.type === 'link' && qr.redirectUrl) {
+      console.log(`✅ Redirecting to ${qr.redirectUrl}`);
+      return res.redirect(qr.redirectUrl);
+    }
+
+    console.log('⚠️ QR code is not a link-based type');
+    res.status(400).send('Invalid QR code type');
+  } catch (err) {
+    console.error('💥 Error in redirectQRCode:', err);
+    res.status(500).send('Server error');
   }
 };
 
