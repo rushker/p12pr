@@ -1,13 +1,12 @@
+// controllers/notificationController.js
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const crypto = require('crypto');
 
 let io = null;
 
-// Set the Socket.IO instance (called in routes)
-exports.setSocket = (ioInstance) => {
-  io = ioInstance;
-};
+// Initialize the Socket.IO instance
+exports.initialize = (_io) => { io = _io; };
 
 // Admin GET notifications
 exports.getAdminNotifications = async (req, res) => {
@@ -17,6 +16,7 @@ exports.getAdminNotifications = async (req, res) => {
       .populate('fromUser', 'email username');
     res.json(notes);
   } catch (err) {
+    console.error('Failed to fetch admin notifications:', err);
     res.status(500).json({ message: 'Failed to fetch admin notifications' });
   }
 };
@@ -42,8 +42,9 @@ exports.handleNotification = async (req, res) => {
       if (!user) return res.status(404).json({ message: 'User not found' });
 
       const resetToken = crypto.randomBytes(32).toString('hex');
-      const resetLink = `/reset-password/${resetToken}`;
+      const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
+      // Store token+expiry on user
       user.resetPasswordToken = resetToken;
       user.resetPasswordExpires = Date.now() + 1000 * 60 * 15; // 15 minutes
       await user.save();
@@ -52,18 +53,23 @@ exports.handleNotification = async (req, res) => {
 
       // Real-time push to user
       if (io) {
-        io.to(user._id.toString()).emit('password-reset-approved', {
-          link: resetLink,
-          message: 'Your password reset request was approved.'
+        io.to(user._id.toString()).emit('notification-updated', {
+          id: note._id,
+          status: note.status,
+          message: note.message,
+          link: note.link
         });
       }
     }
 
     await note.save();
 
-    // Emit notification update to the user (for all actions)
+    // Emit update on any action
     if (io) {
-      io.to(note.fromUser.toString()).emit('notificationUpdated', note);
+      io.to(note.fromUser.toString()).emit('notification-updated', {
+        id: note._id,
+        status: note.status
+      });
     }
 
     res.json(note);
@@ -77,9 +83,11 @@ exports.handleNotification = async (req, res) => {
 exports.getMyNotifications = async (req, res) => {
   try {
     const toRole = req.user.isAdmin ? 'admin' : 'user';
-    const notes = await Notification.find({ toRole, fromUser: req.user._id }).sort('-createdAt');
+    const notes = await Notification.find({ toRole, fromUser: req.user._id })
+      .sort('-createdAt');
     res.json(notes);
   } catch (err) {
+    console.error('Failed to fetch user notifications:', err);
     res.status(500).json({ message: 'Failed to fetch your notifications' });
   }
 };
@@ -90,6 +98,7 @@ exports.deleteNotification = async (req, res) => {
     await Notification.findByIdAndDelete(req.params.id);
     res.json({ success: true });
   } catch (err) {
+    console.error('Failed to delete notification:', err);
     res.status(500).json({ message: 'Failed to delete notification' });
   }
 };

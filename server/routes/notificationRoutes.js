@@ -1,19 +1,25 @@
-// routes/notificationRoutes.js
+// server/routes/notificationRoutes.js
 const express = require('express');
 const { protect, admin } = require('../middleware/auth');
 const notificationController = require('../controllers/notificationController');
 
 module.exports = (io) => {
+  // Initialize Socket.IO in controller
+  if (typeof notificationController.initialize === 'function') {
+    notificationController.initialize(io);
+  }
+
   const router = express.Router();
 
-  // Inject `io` into controller
-  notificationController.setSocket(io);
+  // Admin-only routes
+  router.use('/admin', protect, admin);
+  router.get('/admin', notificationController.getAdminNotifications);
+  router.put('/admin/:id', notificationController.handleNotification);
 
-  router.get('/admin', protect, admin, notificationController.getAdminNotifications);
-  router.put('/admin/:id', protect, admin, notificationController.handleNotification);
-
-  router.get('/', protect, notificationController.getMyNotifications);
-  router.delete('/:id', protect, notificationController.deleteNotification);
+  // User routes (protected)
+  router.use(protect);
+  router.get('/', notificationController.getMyNotifications);
+  router.delete('/:id', notificationController.deleteNotification);
 
   return router;
 };

@@ -123,7 +123,10 @@ const forgotPassword = async (req, res, next) => {
     });
 
     console.log(`🛠️  RESET LINK → ${resetURL}`);
-    res.json({ message:'Password‑reset request queued; awaiting admin approval.' });
+    res.json({
+      message: 'Password‑reset request received, waiting for admin approval',
+      userId: user._id.toString()
+    });
   } catch (err) {
     next(err);
   }

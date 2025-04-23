@@ -1,40 +1,32 @@
+// server.js
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
-const fs = require('fs');
 const { Server } = require('socket.io');
 const connectDB = require('./config/db');
 const configureCloudinary = require('./config/cloudinary');
 const { errorHandler } = require('./middleware/error');
 const listEndpoints = require('express-list-endpoints');
+const notificationController = require('./controllers/notificationController');
 
-// Create Express app
+// Create Express + HTTP server
 const app = express();
 const server = http.createServer(app);
-
-// Connect to MongoDB
+  
+// Connect to DB and configure Cloudinary
 connectDB();
-
-// Configure Cloudinary
 configureCloudinary();
-
-// Create uploads directory if it doesn't exist
-const uploadDir = './uploads';
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Allowed origins
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
-  : ['http://localhost:3000'];
+// CORS
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
+  .split(',')
+  .map(origin => origin.trim());
 
-// Enhanced CORS config
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -68,17 +60,30 @@ const io = new Server(server, {
   }
 });
 
-// Test connection
+// Inject Socket.IO instance into controller
+notificationController.initialize(io);
+
+// Socket.IO events
 io.on('connection', (socket) => {
-  console.log('🔌 New socket connection:', socket.id);
+  console.log(`🔌 Socket connected: ${socket.id}`);
+
+  socket.on('join-room', (userId) => {
+    if (userId) {
+      socket.join(userId);
+      console.log(`👤 User ${userId} joined their room.`);
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log(`❌ Socket disconnected: ${socket.id}`);
+  });
 });
 
 // Routes
-const notificationRoutes = require('./routes/notificationRoutes')(io);
-app.use('/api/notifications', notificationRoutes);
+app.use('/api/notifications', require('./routes/notificationRoutes')(io));
 app.use('/api', require('./routes'));
 
-// Log all registered routes
+// Log registered endpoints
 console.log('🗺️ Registered API endpoints:\n',
   listEndpoints(app)
     .filter(r => r.path.startsWith('/api'))
@@ -94,7 +99,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Global error handler
+// Error handling middleware
 app.use(errorHandler);
 
 // Start server

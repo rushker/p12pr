@@ -1,5 +1,16 @@
+// client/src/utils/socket.js
 import { io } from 'socket.io-client';
 
-const socket = io(process.env.REACT_APP_API_BASE_URL); // or hardcoded URL
+let socket = null;
 
-export default socket;
+export const initializeSocket = (token) => {
+  if (!socket && token) {
+    socket = io(process.env.REACT_APP_API_BASE_URL.replace('/api',''), {
+      auth: { token },
+      withCredentials: true,
+    });
+  }
+  return socket;
+};
+
+export const getSocket = () => socket;

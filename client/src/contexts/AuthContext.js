@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login as authLogin, register as authRegister, getMe } from '../services/authService';
-
+import { initializeSocket, getSocket } from '../utils/socket';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -14,25 +14,21 @@ export const AuthProvider = ({ children }) => {
 
   // Initialize auth state
   useEffect(() => {
-    const initializeAuth = async () => {
+    const init = async () => {
       const token = localStorage.getItem('token');
-      if (!token) {
-        setLoading(false);
-        return;
-      }
+      if (!token) return setLoading(false);
 
+      initializeSocket(token);
       try {
-        const userData = await getMe();
-        setUser(userData);
-      } catch (err) {
-        console.error('Auth initialization error:', err);
+        const me = await getMe();
+        setUser(me);
+      } catch {
         localStorage.removeItem('token');
       } finally {
         setLoading(false);
       }
     };
-
-    initializeAuth();
+    init();
   }, []);
 
   // Login function - fixed to properly handle admin
@@ -40,19 +36,14 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await authLogin(email, password);
-      const { token, ...userData } = response;
-
+      const { token, ...userData } = await authLogin(email, password);
       localStorage.setItem('token', token);
+      initializeSocket(token);
       setUser(userData);
-
-      // Redirect based on user role
-      const redirectPath = userData.isAdmin ? '/admin' : '/dashboard';
-      navigate(redirectPath);
-      
+      navigate(userData.isAdmin ? '/admin' : '/dashboard');
       return userData;
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Login failed');
+      setError(err.response?.data?.message || err.message);
       throw err;
     } finally {
       setLoading(false);
@@ -60,20 +51,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Register function
-  const register = async (username, email, password) => {
+  const register = async (...args) => {
     setLoading(true);
     try {
-      const response = await authRegister(username, email, password);
-      const { token, ...userData } = response;
-
+      const { token, ...userData } = await authRegister(...args);
       localStorage.setItem('token', token);
+      initializeSocket(token);
       setUser(userData);
       navigate('/dashboard');
-      
       return userData;
-    } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Registration failed');
-      throw err;
     } finally {
       setLoading(false);
     }
@@ -81,33 +67,23 @@ export const AuthProvider = ({ children }) => {
 
   // Logout function
   const logout = () => {
+    const sock = getSocket();
+    if (sock) sock.disconnect();
     localStorage.removeItem('token');
     setUser(null);
     navigate('/login');
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        error,
-        isAuthenticated: !!user,
-        isAdmin: user?.isAdmin || false,
-        login,
-        register,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={{
+      user, loading, error,
+      isAuthenticated: !!user,
+      isAdmin: user?.isAdmin,
+      login, register, logout
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);
