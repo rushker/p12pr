@@ -1,4 +1,3 @@
-// server/routes/qrRoutes.js
 const express = require('express');
 const router = express.Router();
 const {
@@ -12,17 +11,15 @@ const { deleteQRCode } = require('../controllers/deleteController');
 const { protect } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
-// Generate image-based QR code
-router
-  .route('/')
+// Public redirect for link-based QR code
+router.get('/redirect/:id', redirectQRCode);
+
+// Protected routes for image-based and link-based QR codes
+router.route('/')
   .post(protect, upload.single('image'), generateQRCode)
   .get(protect, getUserQRCodes);
 
-// Generate link-based QR code
-router.post('/link', generateLinkQRCode);
-
-// Public redirect for link-based QR code
-router.get('/redirect/:id', redirectQRCode);
+router.post('/link', protect, generateLinkQRCode);
 
 // Get or delete a specific QR code
 router

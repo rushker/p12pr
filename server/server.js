@@ -1,15 +1,11 @@
-// server.js
 require('dotenv').config();
 const express = require('express');
-
 const cors = require('cors');
-
 const connectDB = require('./config/db');
 const configureCloudinary = require('./config/cloudinary');
 const { errorHandler } = require('./middleware/error');
 const listEndpoints = require('express-list-endpoints');
 const app = express();
-
 
 // Connect to DB and configure Cloudinary
 connectDB();
@@ -19,7 +15,7 @@ configureCloudinary();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// CORS
+// CORS configuration
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
   .split(',')
   .map(origin => origin.trim());
@@ -37,6 +33,7 @@ const corsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   optionsSuccessStatus: 200
 };
+
 app.use(cors(corsOptions));
 
 // Security headers
@@ -47,7 +44,6 @@ app.use((req, res, next) => {
   res.header('X-XSS-Protection', '1; mode=block');
   next();
 });
-
 
 // Routes
 app.use('/api', require('./routes'));
