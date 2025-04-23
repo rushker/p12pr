@@ -1,40 +1,17 @@
+// client/src/services/qrService.js
 import axios from '../api/axiosConfig';
-import { API_BASE_URL } from '../api/endpoints';
 
-const generateQRCode = async (formData) => {
-  const token = localStorage.getItem('token');
-  const response = await axios.post(`${API_BASE_URL}/qr`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return response.data;
-};
+export const generateImageQRCode = formData =>
+  axios.post('/qr', formData); // For image QR
 
-const getUserQRCodes = async () => {
-  const token = localStorage.getItem('token');
-  const response = await axios.get(`${API_BASE_URL}/qr`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return response.data;
-};
+export const generateLinkQRCode = data =>
+  axios.post('/qr/link', data); // For link QR
 
-const getQRCodeById = async (id) => {
-  const response = await axios.get(`${API_BASE_URL}/qr/${id}`);
-  return response.data;
-};
+export const getUserQRCodes = () =>
+  axios.get('/qr');
 
-const deleteQRCode = async (id) => {
-  const token = localStorage.getItem('token');
-  const response = await axios.delete(`${API_BASE_URL}/qr/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return response.data;
-};
+export const getQRCodeById = id =>
+  axios.get(`/qr/${id}`);
 
-export { generateQRCode, getUserQRCodes, getQRCodeById, deleteQRCode };
+export const deleteQRCode = id =>
+  axios.delete(`/qr/${id}`);

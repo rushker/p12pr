@@ -5,7 +5,7 @@ const QRCodeGen    = require('qrcode');
 const { v4: uuidv4 } = require('uuid');
 const streamifier  = require('streamifier');
 
-// Generate QR code
+// Generate image to QR code
 const generateQRCode = async (req, res, next) => {
   const { title, description } = req.body;
   if (!req.file) {
@@ -49,6 +49,34 @@ const generateQRCode = async (req, res, next) => {
   }
 };  
 
+// Generate link to QR code
+const generateLinkQRCode = async (req, res, next) => {
+  const { link, title, description } = req.body;
+  if (!link) {
+    return res.status(400).json({ message: 'Link is required' });
+  }
+
+  try {
+    // 1) Generate the QR‐code Data URL for that link
+    const qrCodeDataUrl = await QRCodeGen.toDataURL(link);
+
+    // 2) Save to DB (we leave imageUrl/publicId null)
+    const qr = await QRCode.create({
+      user:       req.user.id,
+      imageUrl:   null,
+      qrCodeUrl:  qrCodeDataUrl,
+      publicId:   null,
+      title,
+      description,
+      originalUrl: link // optional: store the actual link
+    });
+
+    await qr.populate('user', 'username email');
+    res.status(201).json(qr);
+  } catch (err) {
+    next(err);
+  }
+};
 // Get all QR codes for a user
 const getUserQRCodes = async (req, res, next) => {
   try {
@@ -107,6 +135,7 @@ const updateQRCode = async (req, res, next) => {
 
 module.exports = {
   generateQRCode,
+  generateLinkQRCode,
   getUserQRCodes,
   getQRCodeById,
   updateQRCode,

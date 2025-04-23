@@ -7,18 +7,12 @@ const qrCodeSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
-  imageUrl: {
-    type: String,
-    required: true,
-  },
+  imageUrl: String,
   qrCodeUrl: {
     type: String,
     required: true,
   },
-  publicId: {
-    type: String,
-    required: true,
-  },
+  publicId: String,
   title: {
     type: String,
     trim: true,
@@ -27,10 +21,12 @@ const qrCodeSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  originalUrl: String, // for link-based QR codes
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
+
 
 module.exports = mongoose.model('QRCode', qrCodeSchema);
