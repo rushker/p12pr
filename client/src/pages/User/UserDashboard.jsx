@@ -1,4 +1,4 @@
-//src/User/UserDashboard.jsx
+// client/src/pages/User/UserDashboard.jsx
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getUserQRCodes, deleteQRCode } from '../../services/qrService';
@@ -16,15 +16,14 @@ const UserDashboard = () => {
   useEffect(() => {
     const fetchQRCodes = async () => {
       try {
-        const data = await getUserQRCodes();
-        setQRCodes(data);
+        const list = await getUserQRCodes();    // now returns an array
+        setQRCodes(list);
       } catch (err) {
-        setError(err.message);
+        setError(err.response?.data?.message || err.message);
       } finally {
         setLoading(false);
       }
     };
-
     fetchQRCodes();
   }, []);
 
@@ -36,24 +35,21 @@ const UserDashboard = () => {
   const confirmDelete = async () => {
     try {
       await deleteQRCode(deleteId);
-      setQRCodes(qrCodes.filter((qr) => qr._id !== deleteId));
+      setQRCodes((prev) => prev.filter((qr) => qr._id !== deleteId));
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+    } finally {
       setShowModal(false);
       setDeleteId(null);
-    } catch (err) {
-      setError(err.message);
     }
   };
 
-  if (loading) {
-    return <div className="text-center py-12">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="text-center py-12 text-red-600">{error}</div>;
-  }
+  if (loading) return <div className="text-center py-12">Loading...</div>;
+  if (error)   return <div className="text-center py-12 text-red-600">{error}</div>;
 
   return (
     <div className="py-8 px-4 max-w-6xl mx-auto">
+      {/* header */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <h1 className="text-2xl font-bold text-gray-800">Your QR Codes</h1>
         <Link
@@ -64,6 +60,7 @@ const UserDashboard = () => {
         </Link>
       </div>
 
+      {/* empty state */}
       {qrCodes.length === 0 ? (
         <div className="text-center py-12 text-gray-600">
           You haven't generated any QR codes yet.
@@ -71,9 +68,16 @@ const UserDashboard = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {qrCodes.map((qr) => (
-            <div key={qr._id} className="bg-white p-4 rounded-lg shadow-md flex flex-col justify-between">
-              {qr.title && <h3 className="text-lg font-semibold mb-2 text-gray-800">{qr.title}</h3>}
-              
+            <div
+              key={qr._id}
+              className="bg-white p-4 rounded-lg shadow-md flex flex-col justify-between"
+            >
+              {qr.title && (
+                <h3 className="text-lg font-semibold mb-2 text-gray-800">
+                  {qr.title}
+                </h3>
+              )}
+
               <div className="flex justify-center mb-4">
                 <QRCode value={`${window.location.origin}/qr/${qr._id}`} size={128} />
               </div>
@@ -99,7 +103,7 @@ const UserDashboard = () => {
         </div>
       )}
 
-      {/* Confirm Modal */}
+      {/* confirm modal */}
       <ConfirmModal
         isOpen={showModal}
         onCancel={() => setShowModal(false)}
