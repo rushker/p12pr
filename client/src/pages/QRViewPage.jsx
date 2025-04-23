@@ -30,9 +30,11 @@ const QRViewPage = () => {
   }
 
   if (!qrData) {
+    if (!qrData || qrData.originalUrl) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600 text-lg">
         Loading QR Code...
+        Loading...
       </div>
     );
   }
@@ -61,6 +63,7 @@ const QRViewPage = () => {
       </div>
     </div>
   );
+}
 };
 
 export default QRViewPage;
