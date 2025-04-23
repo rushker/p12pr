@@ -1,4 +1,4 @@
-// pages/User/QRViewPage.jsx
+// client/src/pages/QRViewPage.jsx
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getQRCodeById } from '../services/qrService';
@@ -21,6 +21,12 @@ const QRViewPage = () => {
     fetchQR();
   }, [id]);
 
+  useEffect(() => {
+    if (qrData?.originalUrl) {
+      window.location.href = qrData.originalUrl;
+    }
+  }, [qrData]);
+
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center text-red-600 text-lg">
@@ -29,12 +35,10 @@ const QRViewPage = () => {
     );
   }
 
-  if (!qrData) {
-    if (!qrData || qrData.originalUrl) {
+  if (!qrData || qrData.originalUrl) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600 text-lg">
         Loading QR Code...
-        Loading...
       </div>
     );
   }
@@ -63,7 +67,6 @@ const QRViewPage = () => {
       </div>
     </div>
   );
-}
 };
 
 export default QRViewPage;

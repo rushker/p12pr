@@ -16,8 +16,8 @@ const UserDashboard = () => {
   useEffect(() => {
     const fetchQRCodes = async () => {
       try {
-        const list = await getUserQRCodes();    // now returns an array
-        setQRCodes(list);
+        const list = await getUserQRCodes(); // returns array
+        setQRCodes(Array.isArray(list) ? list : []);
       } catch (err) {
         setError(err.response?.data?.message || err.message);
       } finally {
@@ -45,11 +45,10 @@ const UserDashboard = () => {
   };
 
   if (loading) return <div className="text-center py-12">Loading...</div>;
-  if (error)   return <div className="text-center py-12 text-red-600">{error}</div>;
+  if (error) return <div className="text-center py-12 text-red-600">{error}</div>;
 
   return (
     <div className="py-8 px-4 max-w-6xl mx-auto">
-      {/* header */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <h1 className="text-2xl font-bold text-gray-800">Your QR Codes</h1>
         <Link
@@ -60,7 +59,6 @@ const UserDashboard = () => {
         </Link>
       </div>
 
-      {/* empty state */}
       {qrCodes.length === 0 ? (
         <div className="text-center py-12 text-gray-600">
           You haven't generated any QR codes yet.
@@ -103,7 +101,6 @@ const UserDashboard = () => {
         </div>
       )}
 
-      {/* confirm modal */}
       <ConfirmModal
         isOpen={showModal}
         onCancel={() => setShowModal(false)}

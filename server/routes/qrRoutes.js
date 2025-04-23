@@ -6,23 +6,28 @@ const {
   generateLinkQRCode,
   getUserQRCodes,
   getQRCodeById,
+  redirectQRCode,
 } = require('../controllers/qrController');
+const { deleteQRCode } = require('../controllers/deleteController');
 const { protect } = require('../middleware/auth');
 const upload = require('../middleware/upload');
-const { deleteQRCode } = require('../controllers/deleteController');
 
-// Image‐based upload
+// Generate image-based QR code
 router
   .route('/')
   .post(protect, upload.single('image'), generateQRCode)
   .get(protect, getUserQRCodes);
 
-// New link‐based QR endpoint
+// Generate link-based QR code
 router.post('/link', protect, generateLinkQRCode);
 
-  router
+// Public redirect for link-based QR code
+router.get('/redirect/:id', redirectQRCode);
+
+// Get or delete a specific QR code
+router
   .route('/:id')
-  .get(protect,getQRCodeById)
+  .get(protect, getQRCodeById)
   .delete(protect, deleteQRCode);
 
 module.exports = router;
