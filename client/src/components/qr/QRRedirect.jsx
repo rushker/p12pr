@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from '../api/axiosConfig';
+import axios from '../../api/axiosConfig';
 
 const QRRedirect = () => {
   const { id } = useParams();
