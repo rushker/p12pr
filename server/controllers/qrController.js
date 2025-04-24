@@ -5,15 +5,11 @@ const QRCodeGen = require('qrcode');
 const { v4: uuidv4 } = require('uuid');
 const streamifier = require('streamifier');
 const asyncHandler = require('express-async-handler');
+const mongoose = require('mongoose');
 
-// Generate QR code from uploaded image
-const generateQRCode = asyncHandler(async (req, res) => {
-  const { title, description } = req.body;
-  if (!req.file) {
-    return res.status(400).json({ message: 'Please upload an image' });
-  }
-
-  const uploadResult = await new Promise((resolve, reject) => {
+// Upload stream helper for Cloudinary
+const uploadToCloudinary = (buffer) => {
+  return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: 'qr-code-images',
@@ -22,9 +18,19 @@ const generateQRCode = asyncHandler(async (req, res) => {
       },
       (error, result) => (error ? reject(error) : resolve(result))
     );
-    streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+    streamifier.createReadStream(buffer).pipe(uploadStream);
   });
+};
 
+// Generate QR code from uploaded image
+const generateQRCode = asyncHandler(async (req, res) => {
+  const { title, description } = req.body;
+
+  if (!req.file) {
+    return res.status(400).json({ message: 'Please upload an image' });
+  }
+
+  const uploadResult = await uploadToCloudinary(req.file.buffer);
   const qrCodeDataUrl = await QRCodeGen.toDataURL(uploadResult.secure_url);
 
   const qrCode = await QRCode.create({
@@ -42,42 +48,33 @@ const generateQRCode = asyncHandler(async (req, res) => {
 });
 
 // Generate QR code from a link
-const generateLinkQRCode = async (req, res, next) => {
+const generateLinkQRCode = asyncHandler(async (req, res) => {
   const { link, title, description } = req.body;
 
   if (!link) {
     return res.status(400).json({ message: 'Link is required' });
   }
 
-  try {
-    // 1. Create the QR code entry first (so you have an ID)
-    const qr = await QRCode.create({
-      user: req.user.id,
-      imageUrl: null,
-      qrCodeUrl: '', // placeholder for now, we'll update it after generating the QR code
-      publicId: null,
-      title,
-      description,
-      originalUrl: link,
-    });
+  const tempId = new mongoose.Types.ObjectId(); // Pre-generate ID
+  const redirectUrl = `${process.env.BASE_URL}/api/qr/redirect/${tempId}`;
+  const qrCodeDataUrl = await QRCodeGen.toDataURL(redirectUrl);
 
-    // 2. Generate the QR code using the newly created ID
-    const redirectUrl = `${process.env.BASE_URL}/api/qr/redirect/${qr._id}`; // Ensure it's the correct base URL
-    const qrCodeDataUrl = await QRCodeGen.toDataURL(redirectUrl);
+  const qrCode = new QRCode({
+    _id: tempId,
+    user: req.user.id,
+    imageUrl: null,
+    qrCodeUrl: qrCodeDataUrl,
+    publicId: null,
+    title,
+    description,
+    originalUrl: link,
+    type: 'link',
+  });
 
-    // 3. Update the QR code object with the generated QR code URL
-    qr.qrCodeUrl = qrCodeDataUrl;
-    await qr.save();
-    await qr.populate('user', 'username email');
-
-    // 4. Send the created QR code as response
-    res.status(201).json(qr);
-  } catch (err) {
-    next(err);
-  }
-};
-
-
+  await qrCode.save();
+  await qrCode.populate('user', 'username email');
+  res.status(201).json(qrCode);
+});
 
 // Get all QR codes for the current user
 const getUserQRCodes = asyncHandler(async (req, res) => {
