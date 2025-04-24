@@ -13,6 +13,7 @@ import RegisterPage from './pages/Auth/RegisterPage';
 import UserDashboard from './pages/User/UserDashboard';
 import QRPage from './pages/User/QRPage';
 import QRViewPage from './pages/QRViewPage';
+import QRRedirect from './components/qr/QRRedirect';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import NotFoundPage from './pages/NotFoundPage';
 
@@ -30,6 +31,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/qr/:id" element={<QRViewPage />} />
+            <Route path="/redirect/:id" element={<QRRedirect />} />
 
             {/* Protected User Routes */}
             <Route element={<ProtectedRoute />}>

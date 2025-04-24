@@ -5,25 +5,25 @@ const {
   generateLinkQRCode,
   getUserQRCodes,
   getQRCodeById,
-  redirectQRCode,
+  redirectQRCode, // keep just one redirect handler
 } = require('../controllers/qrController');
 const { deleteQRCode } = require('../controllers/deleteController');
 const { protect } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
-
+// Public: Redirect handler for link/image QR codes
 router.get('/redirect/:id', redirectQRCode);
 
-// Protected routes for image-based and link-based QR codes
+// Protected: Create and retrieve QR codes
 router.route('/')
   .post(protect, upload.single('image'), generateQRCode)
   .get(protect, getUserQRCodes);
 
+// Protected: Create QR code from a link
 router.post('/link', protect, generateLinkQRCode);
 
-// Get or delete a specific QR code
-router
-  .route('/:id')
+// Protected: Get or delete a specific QR code
+router.route('/:id')
   .get(protect, getQRCodeById)
   .delete(protect, deleteQRCode);
 

@@ -1,4 +1,3 @@
-//server/controllers/qrController
 const QRCode = require('../models/QRCode');
 const cloudinary = require('cloudinary').v2;
 const QRCodeGen = require('qrcode');
@@ -7,7 +6,7 @@ const streamifier = require('streamifier');
 const asyncHandler = require('express-async-handler');
 const mongoose = require('mongoose');
 
-// Upload stream helper for Cloudinary
+// Upload buffer to Cloudinary
 const uploadToCloudinary = (buffer) => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
@@ -22,6 +21,7 @@ const uploadToCloudinary = (buffer) => {
   });
 };
 
+// POST /api/qr
 // Generate QR code from uploaded image
 const generateQRCode = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
@@ -47,6 +47,7 @@ const generateQRCode = asyncHandler(async (req, res) => {
   res.status(201).json(qrCode);
 });
 
+// POST /api/qr/link
 // Generate QR code from a link
 const generateLinkQRCode = asyncHandler(async (req, res) => {
   const { link, title, description } = req.body;
@@ -55,16 +56,14 @@ const generateLinkQRCode = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'Link is required' });
   }
 
-  const tempId = new mongoose.Types.ObjectId(); // Pre-generate ID
-  const redirectUrl = `${process.env.BASE_URL}/api/qr/redirect/${tempId}`;
+  const tempId = new mongoose.Types.ObjectId();
+  const redirectUrl = `${process.env.CLIENT_URL}/redirect/${tempId}`;
   const qrCodeDataUrl = await QRCodeGen.toDataURL(redirectUrl);
 
   const qrCode = new QRCode({
     _id: tempId,
     user: req.user.id,
-    imageUrl: null,
     qrCodeUrl: qrCodeDataUrl,
-    publicId: null,
     title,
     description,
     originalUrl: link,
@@ -76,37 +75,49 @@ const generateLinkQRCode = asyncHandler(async (req, res) => {
   res.status(201).json(qrCode);
 });
 
+// GET /api/qr
 // Get all QR codes for the current user
 const getUserQRCodes = asyncHandler(async (req, res) => {
   const qrCodes = await QRCode.find({ user: req.user.id }).sort({ createdAt: -1 });
   res.json(qrCodes);
 });
 
+// GET /api/qr/:id
 // Get a specific QR code by ID
 const getQRCodeById = asyncHandler(async (req, res) => {
   const qrCode = await QRCode.findById(req.params.id).populate('user', 'username email');
+
   if (!qrCode) {
     return res.status(404).json({ message: 'QR code not found' });
   }
+
   res.json(qrCode);
 });
 
-// PUBLIC: Redirect to original URL
+// GET /api/qr/redirect/:id
+// Redirect based on QR type
 const redirectQRCode = asyncHandler(async (req, res) => {
   const qr = await QRCode.findById(req.params.id);
-  if (!qr) return res.status(404).send('QR code not found');
+
+  if (!qr) {
+    return res.status(404).send('QR code not found');
+  }
 
   if (qr.type === 'link' && qr.originalUrl) {
     return res.redirect(qr.originalUrl);
   }
 
-  res.status(400).send('Invalid QR code type');
+  return res.redirect(`${process.env.CLIENT_URL}/qr/${qr._id}`);
 });
 
-// Update title & description of QR code
+// PUT /api/qr/:id
+// Update QR title and description
 const updateQRCode = asyncHandler(async (req, res) => {
   const qrCode = await QRCode.findById(req.params.id);
-  if (!qrCode) return res.status(404).json({ message: 'QR code not found' });
+
+  if (!qrCode) {
+    return res.status(404).json({ message: 'QR code not found' });
+  }
 
   const isOwner = qrCode.user.toString() === req.user.id;
   if (!isOwner && !req.user.isAdmin) {
