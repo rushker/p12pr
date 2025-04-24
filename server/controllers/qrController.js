@@ -1,3 +1,4 @@
+//server/controllers/qrController
 const QRCode = require('../models/QRCode');
 const cloudinary = require('cloudinary').v2;
 const QRCodeGen = require('qrcode');
