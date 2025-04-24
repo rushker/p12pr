@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import axios from '../../api/axiosConfig';
+import axios from '../../api/axios/axiosConfig';
 import {
   UsersIcon,
   QrCodeIcon,

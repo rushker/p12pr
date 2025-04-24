@@ -1,5 +1,5 @@
 // client/src/services/qrService.js
-import axios from '../api/axiosConfig';
+import axios from '../api/axios/axiosConfig';
 
 // Generate QR code from image
 export const generateImageQRCode = async (formData) => {

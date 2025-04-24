@@ -1,33 +1,30 @@
+// src/components/qr/QRRedirect.jsx
 import { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from '../../api/axiosConfig';
+import { useParams } from 'react-router-dom';
+import publicAxios from '../../api/axios/publicAxios';
 
 const QRRedirect = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const handleRedirect = async () => {
+    const redirectToOriginalUrl = async () => {
       try {
-        // We expect this route to be handled by the backend redirect logic
-        const response = await axios.get(`/qr/redirect/${id}`, {
-          // Allow redirects to go through
-          maxRedirects: 0,
-          validateStatus: status => status >= 200 && status < 400,
-        });
-        // If backend doesn't handle redirect (unlikely), fallback
-        if (response?.data?.url) {
-          window.location.href = response.data.url;
-        }
+        await publicAxios.get(`/qr/redirect/${id}`);
+        // This will be redirected from the backend, no need to handle originalUrl here
       } catch (err) {
-        navigate('/'); // fallback to home if error
+        console.error('Redirect failed:', err);
+        window.location.href = '/not-found';
       }
     };
 
-    handleRedirect();
-  }, [id, navigate]);
+    redirectToOriginalUrl();
+  }, [id]);
 
-  return <div>Redirecting...</div>;
+  return (
+    <div className="min-h-screen flex items-center justify-center text-gray-700 text-lg">
+      Redirecting...
+    </div>
+  );
 };
 
 export default QRRedirect;
