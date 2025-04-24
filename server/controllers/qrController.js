@@ -41,35 +41,42 @@ const generateQRCode = asyncHandler(async (req, res) => {
 });
 
 // Generate QR code from a link
-const generateLinkQRCode = asyncHandler(async (req, res) => {
+const generateLinkQRCode = async (req, res, next) => {
   const { link, title, description } = req.body;
+
   if (!link) {
     return res.status(400).json({ message: 'Link is required' });
   }
 
-  const qr = await QRCode.create({
-    user: req.user.id,
-    imageUrl: null,
-    qrCodeUrl: null,
-    publicId: null,
-    title,
-    description,
-    originalUrl: link,
-    type: 'link',
-  });
+  try {
+    // 1. Create the QR code entry first (so you have an ID)
+    const qr = await QRCode.create({
+      user: req.user.id,
+      imageUrl: null,
+      qrCodeUrl: '', // placeholder for now, we'll update it after generating the QR code
+      publicId: null,
+      title,
+      description,
+      originalUrl: link,
+    });
 
-  const redirectUrl = `${process.env.BASE_URL}/api/qr/redirect/${qr._id}`;
-  const qrCodeDataUrl = await QRCodeGen.toDataURL(redirectUrl);
+    // 2. Generate the QR code using the newly created ID
+    const redirectUrl = `${process.env.BASE_URL}/api/qr/redirect/${qr._id}`; // Ensure it's the correct base URL
+    const qrCodeDataUrl = await QRCodeGen.toDataURL(redirectUrl);
 
-  qr.qrCodeUrl = qrCodeDataUrl;
-  await qr.save();
-  await qr.populate('user', 'username email');
+    // 3. Update the QR code object with the generated QR code URL
+    qr.qrCodeUrl = qrCodeDataUrl;
+    await qr.save();
+    await qr.populate('user', 'username email');
 
-  res.status(201).json({
-    ...qr.toObject(),
-    publicUrl: redirectUrl, // for external usage
-  });
-});
+    // 4. Send the created QR code as response
+    res.status(201).json(qr);
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 
 // Get all QR codes for the current user
 const getUserQRCodes = asyncHandler(async (req, res) => {
