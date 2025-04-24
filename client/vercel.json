@@ -1,9 +1,0 @@
-{
-    "rewrites": [
-      {
-        "source": "/api/:path*",
-        "destination": "https://p12pr.onrender.com/api/:path*"
-      }
-    ]
-  }
-  
