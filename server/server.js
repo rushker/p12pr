@@ -50,6 +50,7 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/qr',  require('./routes/qrRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 // Log registered endpoints
 console.log('🗺️ Registered API endpoints:\n',
