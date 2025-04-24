@@ -8,7 +8,7 @@ const listEndpoints = require('express-list-endpoints');
 
 const app = express();
 
-// Connect to database and Cloudinary
+// Connect to DB and configure Cloudinary
 connectDB();
 configureCloudinary();
 
@@ -16,12 +16,13 @@ configureCloudinary();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// CORS Setup
+// CORS configuration
+
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
   .split(',')
   .map(origin => origin.trim());
 
-app.use(cors({
+const corsOptions = {
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -32,22 +33,23 @@ app.use(cors({
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  optionsSuccessStatus: 200,
-}));
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 
 // Security headers
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('X-Content-Type-Options', 'nosniff');
+  res.header('X-Frame-Options', 'DENY');
+  res.header('X-XSS-Protection', '1; mode=block');
   next();
 });
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
-const qrRoutes = require('./routes/qrRoutes');
-app.use('/api/qr', qrRoutes);
+app.use('/api/qr',  require('./routes/qrRoutes'));
 
 // Log registered endpoints
 console.log('🗺️ Registered API endpoints:\n',
@@ -57,7 +59,7 @@ console.log('🗺️ Registered API endpoints:\n',
     .join('\n')
 );
 
-// Catch-all for unknown API routes
+// Safe catch-all for unknown API routes
 app.use((req, res, next) => {
   if (req.originalUrl.startsWith('/api')) {
     return res.status(404).json({ message: 'API route not found' });
@@ -65,10 +67,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// Error handler
+// Error handling middleware
 app.use(errorHandler);
 
-// Server start
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
