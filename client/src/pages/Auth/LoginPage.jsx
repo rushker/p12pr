@@ -29,18 +29,17 @@ const LoginPage = () => {
   const handleGuestLogin = async () => {
     setLoading(true);
     setError('');
-
+  
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/guest`, {
+      const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/auth/guest`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
-
+  
       const data = await res.json();
-
+  
       if (!res.ok) throw new Error(data.message || 'Guest login failed');
-
-      // Use your existing login flow with the provided guest credentials
+  
       await login(data.email, data.password);
     } catch (err) {
       console.error('Guest login error:', err);
@@ -49,6 +48,7 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="max-w-md mx-auto mt-16 p-8 bg-white rounded-xl shadow-md">
