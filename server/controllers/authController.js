@@ -11,27 +11,41 @@ const generateToken = (id, isAdmin) => {
   });
 };
 
-//Auto create guest account
+// Auto-create guest account
 const createGuestAccount = async (req, res) => {
   try {
-    const guestUser = await User.create({
+    const randomPassword = Math.random().toString(36).slice(-8);
+    const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+    // Step 1: Use `new User()` instead of `User.create()` so we can set the skipHashing flag
+    const guestUser = new User({
       username: `Guest_${Date.now()}`,
       email: `guest_${Date.now()}@guest.com`,
-      password: Math.random().toString(36).slice(-8), // random temp password
+      password: hashedPassword,
       isGuest: true,
     });
 
-    res.json({
+    // Step 2: Set custom flag to bypass rehashing
+    guestUser.skipHashing = true;
+
+    // Step 3: Save manually
+    await guestUser.save();
+
+    // Step 4: Return user data including the plain password
+    res.status(201).json({
       _id: guestUser._id,
       username: guestUser.username,
       email: guestUser.email,
+      password: randomPassword, // Send plain password to client
       isAdmin: false,
       token: generateToken(guestUser._id, false),
     });
   } catch (err) {
+    console.error('Guest account creation error:', err);
     res.status(500).json({ message: 'Failed to create guest account' });
   }
 };
+
 
 
 // Register user
