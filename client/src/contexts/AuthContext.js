@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
     const handleUnload = () => {
       const user = JSON.parse(localStorage.getItem('user'));
       if (user?.isGuest) {
-        navigator.sendBeacon(`${import.meta.env.VITE_API_URL}/api/auth/guest/${user._id}`);
+        navigator.sendBeacon(`${process.env.REACT_APP_API_BASE_URL}/api/auth/guest/${user._id}`);
       }
     };
 

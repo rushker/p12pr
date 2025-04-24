@@ -16,5 +16,5 @@ router.post('/register', registerUser);
 router.post('/login',    loginUser);
 router.get( '/me',       protect, getMe);
 router.delete('/guest/:id', deleteGuestAccount);
-
+router.post('/guest/:id/delete', deleteGuestAccount);
 module.exports = router;

@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-
 import {
   HomeIcon,
   UserCircleIcon,
@@ -15,6 +14,24 @@ const Header = () => {
   if (!auth) return null;
 
   const { user, logout, isAuthenticated, isAdmin } = auth;
+
+  // Custom function to handle guest account deletion on logout
+  const handleLogout = () => {
+    if (user?.isGuest) {
+      // Send request to delete guest account
+      const url = `${import.meta.env.VITE_API_URL}/api/auth/guest/${user._id}/delete`;
+      fetch(url, { method: 'POST' })
+        .then((res) => {
+          if (res.ok) {
+            console.log('Guest account deleted');
+          } else {
+            console.error('Failed to delete guest account');
+          }
+        })
+        .catch((err) => console.error('Error deleting guest account:', err));
+    }
+    logout(); // Call the original logout function
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
@@ -48,7 +65,7 @@ const Header = () => {
                 <span className="font-medium text-gray-700">{user?.username}</span>
               </div>
               <button
-                onClick={logout}
+                onClick={handleLogout} // Use custom logout handler
                 className="flex items-center space-x-1 text-gray-600 hover:text-red-600 transition"
               >
                 <ArrowRightOnRectangleIcon className="h-5 w-5" />

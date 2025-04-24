@@ -5,6 +5,7 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import AdminRoute from './components/common/admin/AdminRoute';
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
+import GuestAutoDelete from './components/GuestAutoDelete';
 
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/Auth/LoginPage';
@@ -24,6 +25,7 @@ function App() {
     <AuthProvider> 
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
+        <GuestAutoDelete />
         <main className="flex-grow container mx-auto px-4 py-8">
           <Routes>
             {/* Public Routes */}
@@ -47,6 +49,7 @@ function App() {
             {/* Catch-all */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
+          
         </main>
         <Footer />
       </div>
