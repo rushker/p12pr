@@ -11,6 +11,29 @@ const generateToken = (id, isAdmin) => {
   });
 };
 
+//Auto create guest account
+const createGuestAccount = async (req, res) => {
+  try {
+    const guestUser = await User.create({
+      username: `Guest_${Date.now()}`,
+      email: `guest_${Date.now()}@guest.com`,
+      password: Math.random().toString(36).slice(-8), // random temp password
+      isGuest: true,
+    });
+
+    res.json({
+      _id: guestUser._id,
+      username: guestUser.username,
+      email: guestUser.email,
+      isAdmin: false,
+      token: generateToken(guestUser._id, false),
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to create guest account' });
+  }
+};
+
+
 // Register user
 const registerUser = async (req, res) => {
   const { username, email, password } = req.body;
@@ -87,10 +110,8 @@ const getMe = async (req, res, next) => {
   }
 };
 
-
-
-
 module.exports = {
+  createGuestAccount,
   registerUser,
   loginUser,
   getMe,

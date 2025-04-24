@@ -2,16 +2,15 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { LockClosedIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
-import { Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState(''); 
-  const [password, setPassword] = useState(''); 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const { login } = useAuth();
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,6 +21,30 @@ const LoginPage = () => {
       await login(email, password);
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid email or password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGuestLogin = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/guest`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || 'Guest login failed');
+
+      // Use your existing login flow with the provided guest credentials
+      await login(data.email, data.password);
+    } catch (err) {
+      console.error('Guest login error:', err);
+      setError(err.message || 'Guest login failed');
     } finally {
       setLoading(false);
     }
@@ -77,7 +100,7 @@ const LoginPage = () => {
           </div>
         </div>
 
-        {/* Button */}
+        {/* Login Button */}
         <button
           type="submit"
           disabled={loading}
@@ -88,12 +111,23 @@ const LoginPage = () => {
           {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
-        {/* Forgot password link */}
-        <div className="mt-4 text-right">
-         <Link to="/forgot-password" className="text-indigo-600 hover:underline text-sm">
-            Forgot your password?
+
+      {/* Forgot password link */}
+      <div className="mt-4 text-right">
+        <Link to="/forgot-password" className="text-indigo-600 hover:underline text-sm">
+          Forgot your password?
         </Link>
-        </div>
+      </div>
+
+      {/* Guest login button */}
+      <button
+        onClick={handleGuestLogin}
+        disabled={loading}
+        className="mt-4 w-full py-2 px-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+      >
+        Login as Guest
+      </button>
+
       <div className="mt-6 text-center text-sm text-gray-600">
         Don’t have an account?{' '}
         <Link to="/register" className="text-indigo-600 hover:underline">
