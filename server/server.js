@@ -45,6 +45,7 @@ app.use((req, res, next) => {
 });
 
 // Routes
+app.use('/api/auth', require('./routes/authRoutes'));
 const qrRoutes = require('./routes/qrRoutes');
 app.use('/api/qr', qrRoutes);
 
