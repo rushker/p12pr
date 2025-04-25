@@ -1,3 +1,4 @@
+//src/components/qr/GuestAutoDelete.jsx
 import { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext'; // adjust path as needed
 

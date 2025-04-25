@@ -1,4 +1,5 @@
 // client/src/contexts/AuthContext.js
+import axios from 'axios';
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login as authLogin, register as authRegister, getMe } from '../services/authService';
@@ -86,16 +87,15 @@ export const AuthProvider = ({ children }) => {
 
   // Logout with guest deletion
   const logout = async () => {
-    const user = JSON.parse(localStorage.getItem('user'));
     if (user?.isGuest) {
       try {
-        await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/auth/guest/${user._id}`, {
-          method: 'DELETE',
-        });
+        await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/auth/guest/${user._id}`);
+        console.log('✅ Guest account deleted successfully');
       } catch (err) {
-        console.error(`Guest logout deletion failed [${user._id}]:`, err);
+        console.error(`❌ Guest deletion failed [${user._id}]:`, err);
       }
     }
+  
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
