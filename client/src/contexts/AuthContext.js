@@ -1,5 +1,5 @@
 // client/src/contexts/AuthContext.js
-import axios from 'axios';
+import axiosInstance from '../api/axiosConfig';
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login as authLogin, register as authRegister, getMe } from '../services/authService';
@@ -98,8 +98,10 @@ export const AuthProvider = ({ children }) => {
         );
         console.log('Guest deleted:', response.data);
       } catch (error) {
-        console.error('Error deleting guest:', error);
+        console.error('Error deleting guest:', error.response?.data || error.message);
       }
+    } else {
+      console.log('Not a guest user. Skipping guest deletion.');
     }
   
     localStorage.removeItem('token');
@@ -107,6 +109,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     navigate('/login');
   };
+  
   
 
   return (
