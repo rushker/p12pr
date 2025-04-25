@@ -89,7 +89,7 @@ export const AuthProvider = ({ children }) => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user?.isGuest) {
       try {
-        await fetch(`${import.meta.env.VITE_API_URL}/api/auth/guest/${user._id}`, {
+        await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/auth/guest/${user._id}`, {
           method: 'DELETE',
         });
       } catch (err) {

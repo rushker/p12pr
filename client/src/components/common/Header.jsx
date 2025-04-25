@@ -15,22 +15,25 @@ const Header = () => {
 
   const { user, logout, isAuthenticated, isAdmin } = auth;
 
-  // Custom function to handle guest account deletion on logout
-  const handleLogout = () => {
+  // Handle guest deletion on logout
+  const handleLogout = async () => {
     if (user?.isGuest) {
-      // Send request to delete guest account
-      const url = `${import.meta.env.VITE_API_URL}/api/auth/guest/${user._id}/delete`;
-      fetch(url, { method: 'POST' })
-        .then((res) => {
-          if (res.ok) {
-            console.log('Guest account deleted');
-          } else {
-            console.error('Failed to delete guest account');
-          }
-        })
-        .catch((err) => console.error('Error deleting guest account:', err));
+      try {
+        const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/auth/guest/${user._id}`, {
+          method: 'POST',
+        });
+
+        if (res.ok) {
+          console.log('✅ Guest account deleted');
+        } else {
+          console.error('❌ Failed to delete guest account');
+        }
+      } catch (error) {
+        console.error('⚠️ Error during guest deletion:', error);
+      }
     }
-    logout(); // Call the original logout function
+
+    logout(); // Proceed with logout
   };
 
   return (
@@ -65,7 +68,7 @@ const Header = () => {
                 <span className="font-medium text-gray-700">{user?.username}</span>
               </div>
               <button
-                onClick={handleLogout} // Use custom logout handler
+                onClick={handleLogout}
                 className="flex items-center space-x-1 text-gray-600 hover:text-red-600 transition"
               >
                 <ArrowRightOnRectangleIcon className="h-5 w-5" />
