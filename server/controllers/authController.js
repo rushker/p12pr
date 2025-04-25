@@ -38,6 +38,7 @@ const createGuestAccount = async (req, res) => {
       email: guestUser.email,
       password: randomPassword, // Send plain password to client
       isAdmin: false,
+      isGuest: true,
       token: generateToken(guestUser._id, false),
     });
   } catch (err) {

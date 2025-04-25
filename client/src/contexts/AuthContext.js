@@ -90,39 +90,30 @@ export const AuthProvider = ({ children }) => {
     console.log('[Logout triggered]');
     console.log('User:', user);
   
-    if (user?.isGuest) {
-      console.log(`Attempting to delete guest user: ${user._id}`);
-      try {
-        const response = await axiosInstance.delete(`/api/auth/guest/${user._id}`);
-        console.log('Guest deleted:', response.data);
-  
-        // Only after successful deletion, clear storage and redirect
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        setUser(null);
-        navigate('/login');
-      } catch (error) {
-        console.error('Error deleting guest:', error.response?.data || error.message);
-        alert('Failed to delete guest account. Please try again.');
-        // Optionally, still logout even if guest deletion fails
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        setUser(null);
-        navigate('/login');
-      }
-    } else {
-      console.log('Not a guest user. Skipping guest deletion.');
-  
-      // Normal logout
+    const clearSessionAndRedirect = () => {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       setUser(null);
       navigate('/login');
+    };
+  
+    if (user?.isGuest) {
+      console.log(`Attempting to delete guest user: ${user._id}`);
+      try {
+        const response = await axiosInstance.delete(`/auth/guest/${user._id}`);
+        console.log('Guest deleted:', response.data);
+      } catch (error) {
+        console.error('Error deleting guest:', error.response?.data || error.message);
+        alert('Failed to delete guest account. Proceeding with logout.');
+      } finally {
+        clearSessionAndRedirect(); // ✅ Always cleanup session
+      }
+    } else {
+      console.log('Not a guest user. Skipping guest deletion.');
+      clearSessionAndRedirect();
     }
   };
   
-  
-
   return (
     <AuthContext.Provider
       value={{
