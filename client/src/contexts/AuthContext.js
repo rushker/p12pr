@@ -87,12 +87,18 @@ export const AuthProvider = ({ children }) => {
 
   // Logout with guest deletion
   const logout = async () => {
+    console.log('[Logout triggered]');
+    console.log('User:', user);
+  
     if (user?.isGuest) {
+      console.log(`Attempting to delete guest user: ${user._id}`);
       try {
-        await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/auth/guest/${user._id}`);
-        console.log('✅ Guest account deleted successfully');
-      } catch (err) {
-        console.error(`❌ Guest deletion failed [${user._id}]:`, err);
+        const response = await axios.delete(
+          `${process.env.REACT_APP_API_BASE_URL}/api/auth/guest/${user._id}`
+        );
+        console.log('Guest deleted:', response.data);
+      } catch (error) {
+        console.error('Error deleting guest:', error);
       }
     }
   
@@ -112,7 +118,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!user,
         isAdmin: user?.isAdmin,
         login,
-        register,
+        register, 
         logout,
       }}
     >
