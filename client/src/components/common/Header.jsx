@@ -16,27 +16,10 @@ const Header = () => {
   const { user, logout, isAuthenticated, isAdmin } = auth;
 
   // Handle logout and guest deletion
-const handleLogout = async () => {
-  try {
-    if (user?.isGuest) {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/auth/guest/${user._id}`,
-        { method: 'DELETE' }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error(`❌ Failed to delete guest account: ${errorData.message || 'Unknown error'}`);
-      } else {
-        console.log('✅ Guest account deleted successfully');
-      }
-    }
-  } catch (err) {
-    console.error('⚠️ Error while deleting guest account:', err);
-  } finally {
-    logout(); // Always logout, even if deletion fails
-  }
-};
+  const handleLogout = async () => {
+    await logout(); 
+  };
+  
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">

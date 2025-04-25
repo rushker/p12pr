@@ -1,7 +1,7 @@
-// server/controllers/deleteController.js
 const QRCode = require('../models/QRCode');
 const User = require('../models/User');
 const deleteImageFromCloudinary = require('../utils/deleteQRCodeWithImage');
+const deleteUserQRCodes = require('../utils/deleteUserQRCodes');
 
 // DELETE /qr/:id — for user or admin
 const deleteQRCode = async (req, res) => {
@@ -44,21 +44,8 @@ const deleteUser = async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const userQRCodes = await QRCode.find({ user: user._id });
-
-    // Delete images from Cloudinary only for image-type QR codes
-    for (const qr of userQRCodes) {
-      if (qr.type === 'image' && qr.publicId) {
-        try {
-          await deleteImageFromCloudinary(qr.publicId);
-        } catch (cloudErr) {
-          console.error(`Failed to delete image for QR ID ${qr._id}:`, cloudErr);
-        }
-      }
-    }
-
-    // Delete QR codes from DB
-    await QRCode.deleteMany({ user: user._id });
+    // Delete user's QR codes and images
+    await deleteUserQRCodes(user._id);
 
     // Delete user
     await user.deleteOne();
@@ -75,30 +62,17 @@ const deleteGuestAccount = async (req, res) => {
   const id = req.params.id;
 
   try {
-    const user = await User.findById(id);
+    const user = await User.findOne({ _id: id, isGuest: true });
 
-    if (!user || !user.isGuest) {
+    if (!user) {
       return res.status(404).json({ message: 'Guest user not found' });
     }
 
-    const userQRCodes = await QRCode.find({ user: user._id });
+    // Delete guest QR codes and images
+    await deleteUserQRCodes(user._id);
 
-    // Delete images from Cloudinary
-    for (const qr of userQRCodes) {
-      if (qr.type === 'image' && qr.publicId) {
-        try {
-          await deleteImageFromCloudinary(qr.publicId);
-        } catch (cloudErr) {
-          console.error(`Failed to delete image for QR ID ${qr._id}:`, cloudErr);
-        }
-      }
-    }
-
-    // Delete all QR codes from DB
-    await QRCode.deleteMany({ user: user._id });
-
-    // Finally, delete the user
-    await user.deleteOne();
+    // Delete guest user
+    await User.deleteOne({ _id: id });
 
     res.status(200).json({ message: 'Guest account and data deleted successfully' });
   } catch (error) {

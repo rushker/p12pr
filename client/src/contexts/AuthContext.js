@@ -93,15 +93,15 @@ export const AuthProvider = ({ children }) => {
           method: 'DELETE',
         });
       } catch (err) {
-        console.error('Failed to delete guest on logout:', err);
+        console.error(`Guest logout deletion failed [${user._id}]:`, err);
       }
     }
-
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
     navigate('/login');
   };
+  
 
   return (
     <AuthContext.Provider
