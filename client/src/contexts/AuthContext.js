@@ -1,5 +1,5 @@
 // client/src/contexts/AuthContext.js
-import axiosInstance from '../api/axiosConfig';
+import axiosInstance from '../api/axios/axiosConfig';
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login as authLogin, register as authRegister, getMe } from '../services/authService';
@@ -93,21 +93,32 @@ export const AuthProvider = ({ children }) => {
     if (user?.isGuest) {
       console.log(`Attempting to delete guest user: ${user._id}`);
       try {
-        const response = await axios.delete(
-          `${process.env.REACT_APP_API_BASE_URL}/auth/guest/${user._id}`
-        );
+        const response = await axiosInstance.delete(`/api/auth/guest/${user._id}`);
         console.log('Guest deleted:', response.data);
+  
+        // Only after successful deletion, clear storage and redirect
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setUser(null);
+        navigate('/login');
       } catch (error) {
         console.error('Error deleting guest:', error.response?.data || error.message);
+        alert('Failed to delete guest account. Please try again.');
+        // Optionally, still logout even if guest deletion fails
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setUser(null);
+        navigate('/login');
       }
     } else {
       console.log('Not a guest user. Skipping guest deletion.');
-    }
   
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
-    navigate('/login');
+      // Normal logout
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser(null);
+      navigate('/login');
+    }
   };
   
   
