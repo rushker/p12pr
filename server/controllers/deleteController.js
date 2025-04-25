@@ -81,8 +81,26 @@ const deleteGuestAccount = async (req, res) => {
       return res.status(404).json({ message: 'Guest user not found' });
     }
 
-    await User.findByIdAndDelete(id);
-    res.status(200).json({ message: 'Guest account deleted' });
+    const userQRCodes = await QRCode.find({ user: user._id });
+
+    // Delete images from Cloudinary
+    for (const qr of userQRCodes) {
+      if (qr.type === 'image' && qr.publicId) {
+        try {
+          await deleteImageFromCloudinary(qr.publicId);
+        } catch (cloudErr) {
+          console.error(`Failed to delete image for QR ID ${qr._id}:`, cloudErr);
+        }
+      }
+    }
+
+    // Delete all QR codes from DB
+    await QRCode.deleteMany({ user: user._id });
+
+    // Finally, delete the user
+    await user.deleteOne();
+
+    res.status(200).json({ message: 'Guest account and data deleted successfully' });
   } catch (error) {
     console.error('Error deleting guest:', error);
     res.status(500).json({ message: 'Server error' });
