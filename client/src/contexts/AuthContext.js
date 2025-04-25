@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
     const handleUnload = () => {
       const user = JSON.parse(localStorage.getItem('user'));
       if (user?.isGuest) {
-        navigator.sendBeacon(`${process.env.REACT_APP_API_BASE_URL}/api/auth/guest/${user._id}`);
+        navigator.sendBeacon(`${process.env.REACT_APP_API_BASE_URL}/auth/guest/${user._id}`);
       }
     };
 
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }) => {
       console.log(`Attempting to delete guest user: ${user._id}`);
       try {
         const response = await axios.delete(
-          `${process.env.REACT_APP_API_BASE_URL}/api/auth/guest/${user._id}`
+          `${process.env.REACT_APP_API_BASE_URL}/auth/guest/${user._id}`
         );
         console.log('Guest deleted:', response.data);
       } catch (error) {

@@ -8,7 +8,7 @@ const GuestAutoDelete = () => {
   useEffect(() => {
     const handleUnload = () => {
       if (user?.isGuest) {
-        const url = `${process.env.REACT_APP_API_BASE_URL}/api/auth/guest/${user._id}`;
+        const url = `${process.env.REACT_APP_API_BASE_URL}/auth/guest/${user._id}`;
         navigator.sendBeacon(url);
       }
     };
