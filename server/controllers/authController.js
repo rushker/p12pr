@@ -106,6 +106,7 @@ const loginUser = async (req, res, next) => {
       username: user.username,
       email: user.email,
       isAdmin: user.isAdmin, 
+      isGuest: user.isGuest,
       token: generateToken(user._id, user.isAdmin),
     });
   } catch (error) {
