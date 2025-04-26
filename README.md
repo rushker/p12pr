@@ -3,7 +3,7 @@ A qr code project website
 
 📦 Tech Stack:
 Frontend: React + Tailwind CSS (hosted on Vercel)
-Backend: Node.js + Express (hosted on Render: https://p12pr.onrender.com)
+Backend: Node.js (First Snippet – CommonJS) + Express  (hosted on Render: https://p12pr.onrender.com)
 Database: NoSQL (MongoDB)
 
 🔐 Authentication:
